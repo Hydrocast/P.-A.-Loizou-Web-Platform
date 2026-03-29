@@ -25,13 +25,23 @@ class AnalyticsController extends Controller
     {
         $validated = $request->validated();
 
-        $startDate = !empty($validated['start_date'])
-            ? Carbon::parse($validated['start_date'])->startOfDay()
-            : now()->subDays(29)->startOfDay();
+        $preset = $validated['preset'] ?? null;
 
-        $endDate = !empty($validated['end_date'])
-            ? Carbon::parse($validated['end_date'])->endOfDay()
-            : now()->endOfDay();
+        if ($preset) {
+            [$startDate, $endDate] = $this->analyticsService->resolveDateRangeFromPreset($preset);
+        } else {
+            $startDate = ! empty($validated['start_date'])
+                ? Carbon::parse($validated['start_date'])->startOfDay()
+                : now()->subDays(29)->startOfDay();
+
+            $endDate = ! empty($validated['end_date'])
+                ? Carbon::parse($validated['end_date'])->endOfDay()
+                : now()->endOfDay();
+
+            $preset = ! empty($validated['start_date']) || ! empty($validated['end_date'])
+                ? 'custom'
+                : 'last_30_days';
+        }
 
         $dashboard = $this->analyticsService->generateDashboard($startDate, $endDate);
 
@@ -39,6 +49,7 @@ class AnalyticsController extends Controller
             'tab' => 'analytics',
             'dashboard' => $dashboard,
             'analyticsFilters' => [
+                'preset' => $preset,
                 'start_date' => $startDate->toDateString(),
                 'end_date' => $endDate->toDateString(),
             ],

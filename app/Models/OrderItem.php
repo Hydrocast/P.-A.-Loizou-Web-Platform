@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Represents a single item within a submitted order.
@@ -22,26 +22,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * from the cart item. It is not a reference to a saved design.
  *
  * preview_image_reference is used for order detail thumbnails and
- * serves as the downloadable print reference file for staff.
+ * quick visual staff reference.
  *
- * @property int         $order_item_id
- * @property int         $order_id
- * @property int         $product_id
- * @property string      $product_name
- * @property float       $unit_price
- * @property int         $quantity
- * @property float       $line_subtotal
- * @property string      $design_snapshot
+ * print_file_reference stores the dedicated print-ready image reference
+ * transferred from the cart item for staff production use.
+ *
+ * @property int $order_item_id
+ * @property int $order_id
+ * @property int $product_id
+ * @property string $product_name
+ * @property float $unit_price
+ * @property int $quantity
+ * @property float $line_subtotal
+ * @property string $design_snapshot
  * @property string|null $preview_image_reference
+ * @property string|null $print_file_reference
  */
 class OrderItem extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'order_items';
+
     protected $primaryKey = 'order_item_id';
+
     protected $keyType = 'int';
+
     public $incrementing = true;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -53,6 +61,7 @@ class OrderItem extends Model
         'line_subtotal',
         'design_snapshot',
         'preview_image_reference',
+        'print_file_reference',
     ];
 
     protected $casts = [

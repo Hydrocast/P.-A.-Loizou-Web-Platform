@@ -3,7 +3,7 @@ import { Palette, ShoppingCart, Trash2, PenSquare } from 'lucide-react';
 import { useState } from 'react';
 import Modal from '@/components/public/Modal';
 import { useTimedFlash } from '@/hooks/useTimedFlash';
-import { extractPrintSidesLabel, extractShirtColorLabel } from '@/lib/design/document';
+import { extractPrintSidesLabel, extractShirtColorLabel, extractSizeLabel } from '@/lib/design/document';
 import type { SavedDesignListItem } from '@/types/design';
 
 type PageProps = {
@@ -41,82 +41,88 @@ export default function SavedDesigns() {
     });
   };
 
+  const processedDesigns = designs.map((design) => {
+    const designId = getDesignId(design);
+    const shirtColorLabel = design.shirt_color_label ?? extractShirtColorLabel(design.design_data);
+    const printSidesLabel = design.print_sides_label ?? extractPrintSidesLabel(design.design_data);
+    const sizeLabel = design.size_label ?? extractSizeLabel(design.design_data);
+
+    return { design, designId, shirtColorLabel, printSidesLabel, sizeLabel };
+  });
+
   return (
     <>
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-2xl font-semibold mb-6">Saved Designs</h2>
+      <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
+        <h2 className="mb-5 text-xl font-semibold sm:text-2xl md:mb-6">Saved Designs</h2>
 
         {visibleSuccess && (
-          <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
+          <div className="mb-4 rounded-md bg-green-100 px-4 py-3 text-sm text-green-800 sm:text-base">
             {visibleSuccess}
           </div>
         )}
 
         {visibleError && (
-          <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
+          <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-800 sm:text-base">
             {visibleError}
           </div>
         )}
 
         {designs.length === 0 ? (
-          <div className="text-center py-12">
-            <Palette className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">You haven't saved any designs yet.</p>
+          <div className="py-10 text-center sm:py-12">
+            <Palette className="mx-auto mb-4 h-10 w-10 text-gray-400 sm:h-12 sm:w-12" />
+            <p className="text-sm text-gray-600 sm:text-base">You haven't saved any designs yet.</p>
             <Link
               href="/catalog?product_type=customizable"
-              className="mt-4 inline-block text-blue-600 hover:underline"
+              className="mt-4 inline-block text-sm text-blue-600 hover:underline sm:text-base"
             >
               Browse customizable products
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {designs.map((design) => {
-              const designId = getDesignId(design);
-              const shirtColorLabel = design.shirt_color_label ?? extractShirtColorLabel(design.design_data);
-              const printSidesLabel = design.print_sides_label ?? extractPrintSidesLabel(design.design_data);
-
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {processedDesigns.map(({ design, designId, shirtColorLabel, printSidesLabel, sizeLabel }) => {
               return (
                 <div
                   key={designId}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="rounded-lg border p-3 transition-shadow hover:shadow-md"
                 >
-                  <div className="bg-gray-100 h-40 rounded-lg flex items-center justify-center mb-3 overflow-hidden">
+                  <div className="mb-3 flex h-40 items-center justify-center overflow-hidden rounded-lg bg-gray-100">
                     {design.preview_image_reference ? (
                       <img
                         src={design.preview_image_reference}
                         alt={design.design_name}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-contain"
                       />
                     ) : (
                       <Palette className="w-12 h-12 text-gray-400" />
                     )}
                   </div>
 
-                  <h3 className="font-semibold mb-1">{design.design_name}</h3>
-                  <div className="mb-3">
-                    <p className="text-sm text-gray-600">
+                  <h3 className="mb-0.5 text-sm font-semibold wrap-break-word">{design.design_name}</h3>
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-600 wrap-break-word">
                       {design.product?.product_name ?? 'Custom design'}
                     </p>
 
-                    {(shirtColorLabel || printSidesLabel) && (
-                      <div className="mt-1 space-y-1 text-xs text-gray-500">
-                        {shirtColorLabel && <p>Shirt Color: {shirtColorLabel}</p>}
-                        {printSidesLabel && <p>Print Sides: {printSidesLabel}</p>}
+                    {(shirtColorLabel || printSidesLabel || sizeLabel) && (
+                      <div className="mt-1 space-y-0.5 text-[11px] text-gray-500">
+                        {shirtColorLabel && <p className="wrap-break-word">Shirt Color: {shirtColorLabel}</p>}
+                        {sizeLabel && <p className="wrap-break-word">Size: {sizeLabel}</p>}
+                        {printSidesLabel && <p className="wrap-break-word">Print Sides: {printSidesLabel}</p>}
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 mb-4">
+                  <p className="mb-3 text-[11px] text-gray-500">
                     Created:{' '}
                     {design.date_created
                       ? new Date(design.date_created).toLocaleDateString()
                       : 'Unknown'}
                   </p>
 
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Link
                       href={`/designs/${designId}/load`}
-                      className="w-full inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                      className="inline-flex w-full items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
                     >
                       <PenSquare className="w-4 h-4 mr-2" />
                       Load Design
@@ -124,7 +130,7 @@ export default function SavedDesigns() {
 
                     <button
                       onClick={() => handleAddToCart(designId)}
-                      className="w-full flex items-center justify-center bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 text-sm cursor-pointer"
+                      className="flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white cursor-pointer hover:bg-blue-700"
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />
                       Add to Cart
@@ -132,7 +138,7 @@ export default function SavedDesigns() {
 
                     <button
                       onClick={() => setDesignToDelete(designId ?? null)}
-                      className="w-full flex items-center justify-center border border-red-200 text-red-600 py-2 px-3 rounded-md hover:bg-red-50 text-sm cursor-pointer"
+                      className="flex w-full items-center justify-center rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 cursor-pointer hover:bg-red-50"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
                       Delete
@@ -162,17 +168,17 @@ export default function SavedDesigns() {
             </p>
           </div>
 
-          <div className="flex gap-3 justify-end">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               onClick={() => setDesignToDelete(null)}
-              className="rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 cursor-pointer"
+              className="w-full cursor-pointer rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
 
             <button
               onClick={confirmDelete}
-              className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 cursor-pointer"
+              className="w-full cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 sm:w-auto"
             >
               Delete Design
             </button>

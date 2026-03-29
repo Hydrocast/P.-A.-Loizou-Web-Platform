@@ -4,7 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -33,8 +32,9 @@ class LoginCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'redirect' => ['nullable', 'string'],
         ];
     }
 
@@ -46,7 +46,7 @@ class LoginCustomerRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required'    => 'Please enter your email address.',
+            'email.required' => 'Please enter your email address.',
             'password.required' => 'Please enter your password.',
         ];
     }

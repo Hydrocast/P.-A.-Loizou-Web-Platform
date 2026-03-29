@@ -35,10 +35,12 @@ class DesignService
     /**
      * Persists a new saved design for a customer.
      *
-        * design_data is the stored design document string.
-        * This may be either legacy raw FabricJS JSON or the newer wrapped
-        * design document format that also carries customization metadata.
+     * design_data is the stored design document string.
+     * This may be either legacy raw FabricJS JSON or the newer wrapped
+     * design document format that also carries customization metadata.
      * preview_image_reference is the cloud URL of the uploaded PNG thumbnail.
+     * print_file_reference is the print-ready image reference preserved for
+     * later transfer into cart items and order items.
      *
      * @throws ValidationException if design name invalid or product inactive.
      */
@@ -48,12 +50,13 @@ class DesignService
         string $designName,
         string $designData,
         ?string $previewImageReference,
+        ?string $printFileReference,
     ): SavedDesign {
         $this->validateDesignName($designName);
 
         $product = CustomizablePrintProduct::find($productId);
 
-        if ($product === null || !$product->isActive()) {
+        if ($product === null || ! $product->isActive()) {
             throw ValidationException::withMessages([
                 'product_id' => 'This product is not available for customization.',
             ]);
@@ -65,6 +68,7 @@ class DesignService
             'design_name' => $designName,
             'design_data' => $designData,
             'preview_image_reference' => $previewImageReference,
+            'print_file_reference' => $printFileReference,
             'date_created' => now(),
         ]);
     }
@@ -82,13 +86,13 @@ class DesignService
     {
         $design = SavedDesign::with('product')->find($designId);
 
-        if ($design === null || !$design->belongsToCustomer($customerId)) {
+        if ($design === null || ! $design->belongsToCustomer($customerId)) {
             throw ValidationException::withMessages([
                 'design_id' => 'This design could not be found.',
             ]);
         }
 
-        if (!$design->isProductAvailable()) {
+        if (! $design->isProductAvailable()) {
             throw ValidationException::withMessages([
                 'design_id' => 'The product for this design is no longer available for customization.',
             ]);
@@ -116,6 +120,11 @@ class DesignService
                 $design->setAttribute(
                     'print_sides_label',
                     DesignDocument::extractPrintSidesLabel($design->design_data),
+                );
+
+                $design->setAttribute(
+                    'size_label',
+                    DesignDocument::extractSizeLabel($design->design_data),
                 );
 
                 return $design;

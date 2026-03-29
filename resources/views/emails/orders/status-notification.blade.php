@@ -6,24 +6,43 @@
     <title>Order Update #{{ $order->order_id }}</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 6px; overflow: hidden; }
-        .header { background-color: #1a1a2e; padding: 32px 40px; }
+        .wrapper { max-width: 600px; margin: 24px auto; background: #ffffff; border-radius: 6px; overflow: hidden; }
+        .header { background-color: #1a1a2e; padding: 24px 32px; }
         .header h1 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 600; }
         .header p { color: #aaaacc; margin: 6px 0 0; font-size: 14px; }
-        .body { padding: 40px; color: #333333; font-size: 15px; line-height: 1.7; }
-        .body h2 { font-size: 18px; color: #1a1a2e; margin-top: 0; }
-        .status-block { margin: 28px 0; padding: 20px 24px; background-color: #f0f4ff; border-left: 4px solid #1a1a2e; }
-        .status-block .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: #888888; margin-bottom: 4px; }
-        .status-block .value { font-size: 20px; font-weight: 700; color: #1a1a2e; }
-        .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888888; margin: 32px 0 12px; border-bottom: 1px solid #eeeeee; padding-bottom: 8px; }
-        .detail-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
-        .detail-label { color: #666666; }
-        .pickup-box { margin-top: 24px; padding: 16px 20px; background-color: #e8f5e9; border-left: 4px solid #2e7d32; font-size: 14px; color: #1b5e20; }
-        .footer { background-color: #f4f4f4; padding: 24px 40px; font-size: 12px; color: #888888; text-align: center; }
+        .body { padding: 32px; color: #333333; font-size: 14px; line-height: 1.6; }
+        .body h2 { font-size: 18px; color: #1a1a2e; margin: 0 0 12px; }
+        .body p { margin: 0 0 14px; }
+        .status-block { margin: 18px 0; padding: 16px 18px; background-color: #f0f4ff; border-left: 4px solid #1a1a2e; }
+        .status-block .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #888888; margin-bottom: 4px; }
+        .status-block .value { font-size: 18px; font-weight: 700; color: #1a1a2e; }
+        .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888888; margin: 24px 0 10px; border-bottom: 1px solid #eeeeee; padding-bottom: 6px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 14px; }
+        .detail-table td { padding: 2px 0; vertical-align: top; }
+        .detail-label { color: #666666; width: 140px; }
+        .pickup-box { margin-top: 16px; padding: 14px 16px; background-color: #e8f5e9; border-left: 4px solid #2e7d32; font-size: 13px; line-height: 1.6; color: #1b5e20; }
+        .cta-wrap { margin-top: 16px; }
+        .button { display: inline-block; padding: 11px 22px; background-color: #1a1a2e; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; }
+        .helper-text { margin-top: 10px; font-size: 12px; color: #777777; }
+        .footer { background-color: #f4f4f4; padding: 18px 32px; font-size: 12px; line-height: 1.6; color: #888888; text-align: center; }
     </style>
 </head>
 <body>
 <div class="wrapper">
+
+    @php
+        $ordersUrl = route('account.orders');
+
+        $statusMessages = [
+            'Pending' => 'Your order has been submitted successfully and is currently awaiting staff review.',
+            'Processing' => 'Your order is now being worked on by our team.',
+            'Ready for Pickup' => 'Great news — your order is ready and waiting for you at our store.',
+            'Completed' => 'Your order has been completed. Thank you for your business!',
+            'Cancelled' => 'Your order has been cancelled. If you believe this is an error, please contact us.',
+        ];
+
+        $statusMessage = $statusMessages[$order->order_status->value] ?? 'Your order status has been updated.';
+    @endphp
 
     <div class="header">
         <h1>{{ config('business.name') }}</h1>
@@ -40,20 +59,22 @@
             <div class="value">{{ $order->order_status->label() }}</div>
         </div>
 
-        {{-- Status message based on current status --}}
-        @php
-            $statusMessages = [
-                'Pending' => 'Your order has been submitted successfully and is currently awaiting staff review.',
-                'Processing' => 'Your order is now being worked on by our team.',
-                'Ready for Pickup' => 'Great news — your order is ready and waiting for you at our store.',
-                'Completed' => 'Your order has been completed. Thank you for your business!',
-                'Cancelled' => 'Your order has been cancelled. If you believe this is an error, please contact us.',
-            ];
-
-            $statusMessage = $statusMessages[$order->order_status->value] ?? 'Your order status has been updated.';
-        @endphp
-
         <p>{{ $statusMessage }}</p>
+
+        <div class="cta-wrap">
+                <a
+                    href="{{ $ordersUrl }}"
+                    class="button"
+                    style="display:inline-block; padding:11px 22px; background-color:#1a1a2e; text-decoration:none; border-radius:4px;"
+                >
+                    <span style="color:#ffffff; text-decoration:none; font-size:14px; font-weight:600;">
+                        View Order History
+                    </span>
+                </a>
+            <div class="helper-text">
+                Open your account to review this order and any previous orders.
+            </div>
+        </div>
 
         @if ($order->order_status->value === 'Ready for Pickup')
         <div class="pickup-box">
@@ -66,20 +87,22 @@
         {{-- Order summary --}}
         <div class="section-title">Order Summary</div>
 
-        <div class="detail-row">
-            <span class="detail-label">Order Number</span>
-            <span><strong>#{{ $order->order_id }}</strong></span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Order Date</span>
-            <span>{{ $order->order_creation_timestamp->format('d M Y, H:i') }}</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Order Total</span>
-            <span>€{{ number_format($order->total_amount, 2) }}</span>
-        </div>
+        <table class="detail-table">
+            <tr>
+                <td class="detail-label">Order Number</td>
+                <td style="text-align:right"><strong>#{{ $order->order_id }}</strong></td>
+            </tr>
+            <tr>
+                <td class="detail-label">Order Date</td>
+                <td style="text-align:right">{{ $order->order_creation_timestamp->format('d M Y, H:i') }}</td>
+            </tr>
+            <tr>
+                <td class="detail-label">Order Total</td>
+                <td style="text-align:right">€{{ number_format($order->total_amount, 2) }}</td>
+            </tr>
+        </table>
 
-        <p style="margin-top: 32px; font-size: 14px; color: #666666;">
+        <p style="margin-top: 20px; font-size: 13px; color: #666666;">
             If you have any questions about your order, please contact us through
             the contact form on our website and reference your order number.
         </p>

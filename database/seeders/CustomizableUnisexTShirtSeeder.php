@@ -13,9 +13,9 @@ use Illuminate\Database\Seeder;
  * by product_name, or creates it if it does not already exist.
  *
  * Run directly with:
- *   php artisan db:seed --class=CustomizableProductSeeder
+ *   php artisan db:seed --class=CustomizableUnisexTShirtSeeder
  */
-class CustomizableProductSeeder extends Seeder
+class CustomizableUnisexTShirtSeeder extends Seeder
 {
     public function run(): void
     {
@@ -29,6 +29,6 @@ class CustomizableProductSeeder extends Seeder
             ]
         );
 
-        $this->command->info('Customizable product seeded successfully.');
+        $this->command->info('Customizable unisex t-shirt product seeded successfully.');
     }
 }

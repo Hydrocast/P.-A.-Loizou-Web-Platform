@@ -24,4 +24,24 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    optimizeDeps: {
+        include: ['react', 'react-dom', '@inertiajs/react', 'fabric', 'lucide-react'],
+    },
+    build: {
+        sourcemap: false,
+        modulePreload: { polyfill: false },
+        target: 'esnext',
+        cssCodeSplit: true,
+        reportCompressedSize: false,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    'vendor-inertia': ['@inertiajs/react'],
+                    'vendor-lucide': ['lucide-react'],
+                    'vendor-fabric': ['fabric'],
+                },
+            },
+        },
+        chunkSizeWarningLimit: 800,
+    },
 });

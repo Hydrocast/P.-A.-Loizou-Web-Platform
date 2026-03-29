@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Represents a single item within a customer's shopping cart.
@@ -17,13 +17,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * client‑side at the time of addition. It is used for the cart item thumbnail
  * and later transferred to the order item for staff print reference.
  *
- * @property int         $cart_item_id
- * @property int         $cart_id
- * @property int         $product_id
- * @property int         $quantity
- * @property string      $design_snapshot
+ * @property int $cart_item_id
+ * @property int $cart_id
+ * @property int $product_id
+ * @property int $quantity
+ * @property string $design_snapshot
  * @property string|null $preview_image_reference
- * @property string      $date_added
+ * @property string $date_added
  */
 class CartItem extends Model
 {
@@ -39,6 +39,7 @@ class CartItem extends Model
         'quantity',
         'design_snapshot',
         'preview_image_reference',
+        'print_file_reference',
         'date_added',
     ];
 

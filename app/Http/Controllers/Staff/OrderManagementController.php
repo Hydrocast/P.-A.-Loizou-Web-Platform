@@ -9,6 +9,7 @@ use App\Http\Requests\AddOrderNoteRequest;
 use App\Http\Requests\FilterOrdersRequest;
 use App\Http\Requests\ReassignOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\Clipart;
 use App\Models\CustomerOrder;
 use App\Models\Staff;
 use App\Services\OrderProcessingService;
@@ -22,7 +23,6 @@ use Inertia\Response;
 
 /**
  * Handles staff order management operations.
- *
  */
 class OrderManagementController extends Controller
 {
@@ -40,6 +40,10 @@ class OrderManagementController extends Controller
 
         $validated = $request->validated();
 
+        $orderNumber = ! empty($validated['order_number'])
+            ? (int) $validated['order_number']
+            : null;
+
         $status = ! empty($validated['order_status'])
             ? OrderStatus::from($validated['order_status'])
             : null;
@@ -55,6 +59,7 @@ class OrderManagementController extends Controller
         $sortOrder = $validated['sort_order'] ?? 'desc';
 
         $orders = $this->orderProcessingService->filterOrders(
+            $orderNumber,
             $status,
             $startDate,
             $endDate,
@@ -65,6 +70,7 @@ class OrderManagementController extends Controller
             'tab' => 'orders',
             'orders' => $orders,
             'filters' => [
+                'order_number' => $validated['order_number'] ?? null,
                 'order_status' => $validated['order_status'] ?? null,
                 'start_date' => $validated['start_date'] ?? null,
                 'end_date' => $validated['end_date'] ?? null,
@@ -85,6 +91,10 @@ class OrderManagementController extends Controller
 
         $validated = $request->validated();
 
+        $orderNumber = ! empty($validated['order_number'])
+            ? (int) $validated['order_number']
+            : null;
+
         $status = ! empty($validated['order_status'])
             ? OrderStatus::from($validated['order_status'])
             : null;
@@ -100,6 +110,7 @@ class OrderManagementController extends Controller
         $sortOrder = $validated['sort_order'] ?? 'desc';
 
         $orders = $this->orderProcessingService->filterOrders(
+            $orderNumber,
             $status,
             $startDate,
             $endDate,
@@ -118,6 +129,21 @@ class OrderManagementController extends Controller
                 'account_status',
             ]);
 
+        $clipartNamesByImageReference = Clipart::query()
+            ->whereNotNull('image_reference')
+            ->whereNotNull('clipart_name')
+            ->get(['image_reference', 'clipart_name'])
+            ->reduce(function (array $carry, Clipart $clipart): array {
+                $imageReference = trim((string) $clipart->image_reference);
+                $clipartName = trim((string) $clipart->clipart_name);
+
+                if ($imageReference !== '' && $clipartName !== '') {
+                    $carry[$imageReference] = $clipartName;
+                }
+
+                return $carry;
+            }, []);
+
         $selectedOrderPayload = [
             'order_id' => $selectedOrder->order_id,
             'customer_name' => $selectedOrder->customer_name,
@@ -129,7 +155,7 @@ class OrderManagementController extends Controller
             'assigned_staff_id' => $selectedOrder->assigned_staff_id,
             'pickup_notification_sent_at' => $selectedOrder->pickup_notification_sent_at,
             'pickup_notification_sent_by_staff_id' => $selectedOrder->pickup_notification_sent_by_staff_id,
-            'items' => $selectedOrder->items->map(function ($item) {
+            'items' => $selectedOrder->items->map(function ($item) use ($clipartNamesByImageReference) {
                 return [
                     'order_item_id' => $item->order_item_id,
                     'product_id' => $item->product_id,
@@ -139,8 +165,14 @@ class OrderManagementController extends Controller
                     'line_subtotal' => $item->line_subtotal,
                     'design_snapshot' => $item->design_snapshot,
                     'preview_image_reference' => $item->preview_image_reference,
+                    'print_file_reference' => $item->print_file_reference,
                     'shirt_color_label' => DesignDocument::extractShirtColorLabel($item->design_snapshot),
+                    'size_label' => DesignDocument::extractSizeLabel($item->design_snapshot),
                     'print_sides_label' => DesignDocument::extractPrintSidesLabel($item->design_snapshot),
+                    'clipart_used' => $this->resolveClipartNames(
+                        $item->design_snapshot,
+                        $clipartNamesByImageReference,
+                    ),
                 ];
             })->values(),
             'notes' => $selectedOrder->notes,
@@ -150,6 +182,7 @@ class OrderManagementController extends Controller
             'tab' => 'orders',
             'orders' => $orders,
             'filters' => [
+                'order_number' => $validated['order_number'] ?? null,
                 'order_status' => $validated['order_status'] ?? null,
                 'start_date' => $validated['start_date'] ?? null,
                 'end_date' => $validated['end_date'] ?? null,
@@ -158,6 +191,31 @@ class OrderManagementController extends Controller
             'selectedOrder' => $selectedOrderPayload,
             'activeStaff' => $activeStaff,
         ]);
+    }
+
+    /**
+     * @param  array<string, string>  $clipartNamesByImageReference
+     * @return array<int, string>
+     */
+    private function resolveClipartNames(?string $designSnapshot, array $clipartNamesByImageReference): array
+    {
+        $imageSources = DesignDocument::extractImageSrcs($designSnapshot);
+
+        if ($imageSources === []) {
+            return [];
+        }
+
+        $clipartNames = [];
+
+        foreach ($imageSources as $imageSource) {
+            if (! array_key_exists($imageSource, $clipartNamesByImageReference)) {
+                continue;
+            }
+
+            $clipartNames[] = $clipartNamesByImageReference[$imageSource];
+        }
+
+        return array_values(array_unique($clipartNames));
     }
 
     /**

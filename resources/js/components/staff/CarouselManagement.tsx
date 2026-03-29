@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Plus, Edit, Trash2, ChevronUp, ChevronDown, Image as ImageIcon, Link2 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import Modal, { ConfirmDialog } from '@/components/public/Modal';
 import { useTimedFlash } from '@/hooks/useTimedFlash';
@@ -73,15 +73,9 @@ export default function CarouselManagement({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const linkedProductLookup = useMemo(
-    () => new Map(linkedProducts.map((product) => [product.value, product])),
-    [linkedProducts],
-  );
+  const linkedProductLookup = new Map(linkedProducts.map((product) => [product.value, product]));
 
-  const selectedLinkedProduct = useMemo(
-    () => linkedProductLookup.get(formData.linkedProductKey) ?? null,
-    [formData.linkedProductKey, linkedProductLookup],
-  );
+  const selectedLinkedProduct = linkedProductLookup.get(formData.linkedProductKey) ?? null;
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -372,7 +366,7 @@ export default function CarouselManagement({
           </button>
 
           <div className="min-w-0 flex-1">
-            <p className={`truncate text-sm ${selectedImage ? 'text-gray-900' : 'text-gray-500'}`}>
+            <p className={`text-sm wrap-break-word ${selectedImage ? 'text-gray-900' : 'text-gray-500'}`}>
               {selectedFileLabel}
             </p>
 
@@ -395,8 +389,8 @@ export default function CarouselManagement({
       : linkedProductHasImage;
 
     return (
-      <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-        <div className="flex items-center justify-between gap-3">
+      <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h4 className="text-sm font-semibold text-gray-800">Slide Image Source</h4>
             <p className="text-xs text-gray-500">
@@ -408,7 +402,7 @@ export default function CarouselManagement({
             <button
               type="button"
               onClick={handleUseProductImage}
-              className="inline-flex items-center rounded-md border border-purple-300 bg-white px-3 py-2 text-sm font-medium text-purple-700 transition-colors hover:bg-purple-50 cursor-pointer"
+              className="inline-flex w-full items-center justify-center rounded-md border border-purple-300 bg-white px-3 py-2 text-sm font-medium text-purple-700 transition-colors cursor-pointer hover:bg-purple-50 sm:w-auto"
             >
               <Link2 className="mr-2 h-4 w-4" />
               Use Product Image
@@ -519,31 +513,135 @@ export default function CarouselManagement({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-purple-900">Carousel Management</h2>
+    <div className="rounded-lg bg-white p-4 shadow-md sm:p-5 md:p-6">
+      <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-semibold text-purple-900 sm:text-2xl">Carousel Management</h2>
         <button
           onClick={openAddModal}
-          className="flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+          className="flex w-full items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors cursor-pointer hover:bg-purple-700 sm:w-auto"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="mr-2 h-5 w-5" />
           Add Slide
         </button>
       </div>
 
       {visibleSuccess && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-md border border-green-200">
+        <div className="mb-4 rounded-md border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-800 sm:text-base">
           {visibleSuccess}
         </div>
       )}
 
       {visibleError && (
-        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-md border border-red-200">
+        <div className="mb-4 rounded-md border border-red-200 bg-red-100 px-4 py-3 text-sm text-red-800 sm:text-base">
           {visibleError}
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="md:hidden">
+        {sortedSlides.length === 0 ? (
+          <div className="rounded-md border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No carousel slides found. Click "Add Slide" to create one.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sortedSlides.map((slide, index) => (
+              <div
+                key={slide.slideId}
+                className="rounded-lg border border-gray-200 p-4"
+              >
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Slide #{slide.displaySequence}
+                    </p>
+                    <h3 className="mt-1 text-sm font-semibold text-gray-900 wrap-break-word">
+                      {slide.title}
+                    </h3>
+                  </div>
+
+                  <div className="flex shrink-0 flex-col">
+                    <button
+                      onClick={() => moveSlide(index, 'up')}
+                      disabled={index === 0}
+                      className={`rounded p-1 transition-colors cursor-pointer ${
+                        index === 0
+                          ? 'cursor-not-allowed text-gray-300'
+                          : 'text-purple-600 hover:bg-purple-50'
+                      }`}
+                      title="Move up"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      onClick={() => moveSlide(index, 'down')}
+                      disabled={index === sortedSlides.length - 1}
+                      className={`rounded p-1 transition-colors cursor-pointer ${
+                        index === sortedSlides.length - 1
+                          ? 'cursor-not-allowed text-gray-300'
+                          : 'text-purple-600 hover:bg-purple-50'
+                      }`}
+                      title="Move down"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mb-4 flex h-32 items-center justify-center overflow-hidden rounded-md border border-gray-200 bg-gray-100">
+                  {slide.imageUrl ? (
+                    <img
+                      src={slide.imageUrl}
+                      alt={slide.title}
+                      className="h-full w-full object-contain"
+                    />
+                  ) : (
+                    <ImageIcon className="h-6 w-6 text-gray-400" />
+                  )}
+                </div>
+
+                <dl className="space-y-3 text-sm">
+                  <div>
+                    <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Description
+                    </dt>
+                    <dd className="text-gray-700 wrap-break-word">{slide.description || '-'}</dd>
+                  </div>
+
+                  <div>
+                    <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Linked Product
+                    </dt>
+                    <dd className="text-gray-700 wrap-break-word">{slide.linkedProductName || '-'}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    onClick={() => openEditModal(slide)}
+                    className="inline-flex w-full items-center justify-center rounded-md border border-purple-200 px-3 py-2 text-sm text-purple-700 transition-colors cursor-pointer hover:bg-purple-50 sm:w-auto"
+                    title="Edit Slide"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => openDeleteConfirm(slide)}
+                    className="inline-flex w-full items-center justify-center rounded-md border border-red-200 px-3 py-2 text-sm text-red-700 transition-colors cursor-pointer hover:bg-red-50 sm:w-auto"
+                    title="Delete Slide"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full table-fixed">
           <colgroup>
             <col className="w-28" />
@@ -574,36 +672,38 @@ export default function CarouselManagement({
               </tr>
             ) : (
               sortedSlides.map((slide, index) => (
-                <tr key={slide.slideId} className="hover:bg-gray-50 transition-colors align-top">
+                <tr key={slide.slideId} className="align-top transition-colors hover:bg-gray-50">
                   <td className="px-4 py-3">
-                    <div className="flex items-center space-x-1">
-                      <span className="font-medium text-gray-900">{slide.displaySequence}</span>
+                    <div className="inline-flex items-center gap-2">
+                      <div className="inline-flex h-9 w-10 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-sm font-semibold text-gray-900 tabular-nums">
+                        {slide.displaySequence}
+                      </div>
 
-                      <div className="flex flex-col">
+                      <div className="flex flex-col items-center justify-center">
                         <button
                           onClick={() => moveSlide(index, 'up')}
                           disabled={index === 0}
-                          className={`p-0.5 rounded transition-colors cursor-pointer ${
+                          className={`inline-flex h-4 w-4 items-center justify-center rounded transition-colors ${
                             index === 0
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-purple-600 hover:bg-purple-50'
+                              ? 'cursor-not-allowed text-gray-300'
+                              : 'cursor-pointer text-purple-600 hover:bg-purple-50'
                           }`}
                           title="Move up"
                         >
-                          <ChevronUp className="w-4 h-4" />
+                          <ChevronUp className="h-4 w-4" />
                         </button>
 
                         <button
                           onClick={() => moveSlide(index, 'down')}
                           disabled={index === sortedSlides.length - 1}
-                          className={`p-0.5 rounded transition-colors cursor-pointer ${
+                          className={`inline-flex h-4 w-4 items-center justify-center rounded transition-colors ${
                             index === sortedSlides.length - 1
-                              ? 'text-gray-300 cursor-not-allowed'
-                              : 'text-purple-600 hover:bg-purple-50'
+                              ? 'cursor-not-allowed text-gray-300'
+                              : 'cursor-pointer text-purple-600 hover:bg-purple-50'
                           }`}
                           title="Move down"
                         >
-                          <ChevronDown className="w-4 h-4" />
+                          <ChevronDown className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
@@ -623,15 +723,15 @@ export default function CarouselManagement({
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 font-medium text-gray-900 text-sm leading-6 break-words whitespace-normal">
+                  <td className="px-4 py-3 text-sm font-medium leading-6 text-gray-900 whitespace-normal wrap-break-word">
                     {slide.title}
                   </td>
 
-                  <td className="px-4 py-3 text-gray-700 text-sm leading-6 break-words whitespace-normal">
+                  <td className="px-4 py-3 text-sm leading-6 text-gray-700 whitespace-normal wrap-break-word">
                     {slide.description || '-'}
                   </td>
 
-                  <td className="px-4 py-3 text-gray-700 text-sm leading-6 break-words whitespace-normal">
+                  <td className="px-4 py-3 text-sm leading-6 text-gray-700 whitespace-normal wrap-break-word">
                     {slide.linkedProductName || '-'}
                   </td>
 
@@ -639,18 +739,18 @@ export default function CarouselManagement({
                     <div className="flex justify-end space-x-2">
                       <button
                         onClick={() => openEditModal(slide)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded transition-colors cursor-pointer"
+                        className="cursor-pointer rounded p-2 text-purple-600 transition-colors hover:bg-purple-50"
                         title="Edit Slide"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="h-4 w-4" />
                       </button>
 
                       <button
                         onClick={() => openDeleteConfirm(slide)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                        className="cursor-pointer rounded p-2 text-red-600 transition-colors hover:bg-red-50"
                         title="Delete Slide"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
@@ -709,16 +809,16 @@ export default function CarouselManagement({
 
           {renderImageSourcePanel('add')}
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={() => setIsAddModalOpen(false)}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleAddSlide}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors hover:bg-purple-700 sm:w-auto"
             >
               Create Slide
             </button>
@@ -774,16 +874,16 @@ export default function CarouselManagement({
 
           {renderImageSourcePanel('edit')}
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={() => setIsEditModalOpen(false)}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleEditSlide}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors hover:bg-purple-700 sm:w-auto"
             >
               Save Changes
             </button>

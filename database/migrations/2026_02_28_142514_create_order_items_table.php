@@ -21,8 +21,13 @@ use Illuminate\Support\Facades\Schema;
  * The design snapshot is an immutable copy of the design, not a reference
  * to a saved design that could later be modified or deleted.
  *
- * The preview image reference is transferred from the cart item and used
- * for order detail thumbnails and staff print reference downloads.
+ * The preview_image_reference is transferred from the cart item and used
+ * for order detail thumbnails and quick visual staff reference.
+ *
+ * The print_file_reference is transferred from the cart item and stores the
+ * print-ready image reference used by staff for production purposes. This is
+ * kept separate from the preview image so display assets and print assets
+ * remain distinct throughout the order lifecycle.
  *
  * Order items are automatically deleted when their parent order is deleted.
  * The restrict constraint on product_id preserves product records for
@@ -37,15 +42,15 @@ return new class extends Migration
 
             $table->unsignedInteger('order_id');
             $table->foreign('order_id')
-                  ->references('order_id')
-                  ->on('customer_orders')
-                  ->onDelete('cascade');
+                ->references('order_id')
+                ->on('customer_orders')
+                ->onDelete('cascade');
 
             $table->unsignedInteger('product_id');
             $table->foreign('product_id')
-                  ->references('product_id')
-                  ->on('customizable_print_products')
-                  ->onDelete('restrict');
+                ->references('product_id')
+                ->on('customizable_print_products')
+                ->onDelete('restrict');
 
             // Frozen product and pricing data - copied at order submission
             $table->string('product_name', 100);
@@ -55,6 +60,7 @@ return new class extends Migration
 
             $table->longText('design_snapshot');
             $table->longText('preview_image_reference')->nullable();
+            $table->longText('print_file_reference')->nullable();
 
             $table->index('order_id', 'idx_order_item_order');
         });

@@ -65,22 +65,22 @@ export default function Contact() {
 
       <div>
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-purple-600 to-orange-500 text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 className="text-5xl font-bold mb-6">Contact Us</h1>
-            <p className="text-2xl text-purple-100 max-w-3xl mx-auto">
+        <div className="bg-linear-to-r from-purple-600 to-orange-500 py-14 text-white sm:py-16 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+            <h1 className="mb-5 text-4xl font-bold sm:mb-6 sm:text-5xl">Contact Us</h1>
+            <p className="mx-auto max-w-3xl text-lg text-purple-100 sm:text-2xl">
               Get in touch with our team for any inquiries
             </p>
           </div>
         </div>
 
         {/* Everything below hero gets equal left/right padding */}
-        <div className="px-10 sm:px-12 lg:px-14">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-7">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="px-4 sm:px-8 lg:px-14">
+          <div className="mx-auto max-w-7xl pt-8 pb-6 sm:pt-10 sm:pb-7">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
               {/* Contact Information */}
               <div className="pb-1">
-                <h2 className="text-2xl font-semibold mb-3 text-purple-900">Get in Touch</h2>
+                <h2 className="mb-3 text-xl font-semibold text-purple-900 sm:text-2xl">Get in Touch</h2>
                 <p className="text-gray-600 mb-3 leading-relaxed">
                   Have a question about our products or services? We&apos;re here to help!
                   Fill out the form and we&apos;ll get back to you as soon as possible.
@@ -88,14 +88,14 @@ export default function Contact() {
 
                 <div className="space-y-3">
                   <div className="flex items-start">
-                    <MapPin className="w-5 h-5 text-purple-600 mr-3 mt-1 flex-shrink-0" />
+                    <MapPin className="w-5 h-5 text-purple-600 mr-3 mt-1 shrink-0" />
                     <div>
                       <h3 className="font-semibold text-purple-900 mb-1">Main Shop Location</h3>
                       <a
                         href="https://www.google.com/maps/place/Loizou+Prints/@35.0375461,33.9753359,17z/data=!3m1!4b1!4m6!3m5!1s0x14dfc5f70b7e71f9:0x20541734bac708a2!8m2!3d35.0375461!4d33.9779108!16s%2Fg%2F11c2dxdjtb?entry=ttu&g_ep=EgoyMDI2MDMxMC4wIKXMDSoASAFQAw%3D%3D"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-purple-600 transition-colors"
+                        className="text-gray-600 transition-colors hover:text-purple-600 wrap-break-word"
                       >
                         1st April 120, Paralimni
                       </a>
@@ -103,14 +103,14 @@ export default function Contact() {
                   </div>
 
                   <div className="flex items-start">
-                    <MapPin className="w-5 h-5 text-orange-600 mr-3 mt-1 flex-shrink-0" />
+                    <MapPin className="w-5 h-5 text-orange-600 mr-3 mt-1 shrink-0" />
                     <div>
                       <h3 className="font-semibold text-purple-900 mb-1">2nd Shop Location</h3>
                       <a
                         href="https://www.google.com/maps/place/P.+%26+A.+Loizou/@34.9776928,33.8531778,14z/data=!4m15!1m8!3m7!1s0x14dfd24fd3daa23b:0x7994552ce3c01572!2zzqbPgc6vzr7Ov8-FIM6gzrHOvc6xzrPOuc-Oz4TOv8-FIDI4LCDOns-FzrvOv8-GzqzOs86_z4UgNzUyMCwgzprPjc-Az4HOv8-C!3b1!8m2!3d34.9776155!4d33.8525068!10e5!3m5!1s0x14dfd24fce8cc21f:0xdeaf2eec86e7bbc2!8m2!3d34.9775941!4d33.8531956!16s%2Fg%2F11g6mqsn4t?entry=ttu&g_ep=EgoyMDI2MDMxMC4wIKXMDSoASAFQAw%3D%3D"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-orange-600 transition-colors"
+                        className="text-gray-600 transition-colors hover:text-orange-600 wrap-break-word"
                       >
                         Frixou Panayiotou 28, Xylofagou
                       </a>
@@ -125,7 +125,7 @@ export default function Contact() {
                         href="https://mail.google.com/mail/?view=cm&fs=1&to=info@loizouprints.com&su=Inquiry%20from%20Loizou%20Prints%20Website&body=Hello%20Loizou%20Prints%2C%0A%0AI%20would%20like%20to%20ask%20about%20your%20products%20or%20services.%0A%0AKind%20regards%2C"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-purple-600 transition-colors"
+                        className="text-gray-600 transition-colors hover:text-purple-600 wrap-break-word"
                       >
                         info@loizouprints.com
                       </a>
@@ -174,17 +174,17 @@ export default function Contact() {
               </div>
 
               {/* Contact Form */}
-              <div className="bg-white px-6 pt-6 pb-6 rounded-lg shadow-md border border-gray-200">
-                <h2 className="text-2xl font-semibold mb-3 text-purple-900">Send us a Message</h2>
+              <div className="rounded-lg border border-gray-200 bg-white px-4 pb-4 pt-4 shadow-md sm:px-5 sm:pb-5 sm:pt-5 md:px-6 md:pb-6 md:pt-6">
+                <h2 className="mb-3 text-xl font-semibold text-purple-900 sm:text-2xl">Send us a Message</h2>
 
                 {flash?.success && (
-                  <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md text-sm border border-green-200">
+                  <div className="mb-4 rounded-md border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-800">
                     {flash.success}
                   </div>
                 )}
 
                 {flash?.error && (
-                  <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm border border-red-200">
+                  <div className="mb-4 rounded-md border border-red-200 bg-red-100 px-4 py-3 text-sm text-red-800">
                     {flash.error}
                   </div>
                 )}
@@ -198,7 +198,7 @@ export default function Contact() {
                       type="text"
                       value={data.fullName}
                       onChange={(e) => setData('fullName', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      className={`w-full rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
                         errors.fullName ? 'border-red-500' : 'border-gray-300'
                       }`}
                       maxLength={50}
@@ -216,7 +216,7 @@ export default function Contact() {
                       type="email"
                       value={data.email}
                       onChange={(e) => setData('email', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      className={`w-full rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
                         errors.email ? 'border-red-500' : 'border-gray-300'
                       }`}
                       maxLength={100}
@@ -234,7 +234,7 @@ export default function Contact() {
                       type="text"
                       value={data.subject}
                       onChange={(e) => setData('subject', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      className={`w-full rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
                         errors.subject ? 'border-red-500' : 'border-gray-300'
                       }`}
                       maxLength={100}
@@ -252,7 +252,7 @@ export default function Contact() {
                       value={data.message}
                       onChange={(e) => setData('message', e.target.value)}
                       rows={5}
-                      className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      className={`w-full rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-purple-500 ${
                         errors.message ? 'border-red-500' : 'border-gray-300'
                       }`}
                       maxLength={2000}

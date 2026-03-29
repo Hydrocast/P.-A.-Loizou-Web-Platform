@@ -9,15 +9,17 @@ type PageProps = {
     success?: string
     error?: string
   }
+  redirect?: string | null
 }
 
 export default function CustomerLogin() {
-  const { flash } = usePage<PageProps>().props
+  const { flash, redirect } = usePage<PageProps>().props
   const [showPassword, setShowPassword] = useState(false)
 
   const { data, setData, post, processing, errors } = useForm({
     email: '',
     password: '',
+    redirect: redirect ?? '',
   })
 
   const submit: FormEventHandler = (e) => {
@@ -29,24 +31,24 @@ export default function CustomerLogin() {
     <>
       <Head title="Customer Login" />
 
-      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-6 text-center">Customer Login</h1>
+      <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+        <div className="rounded-lg bg-white p-5 shadow-md sm:p-6 md:p-8">
+          <h1 className="mb-5 text-center text-xl font-bold sm:text-2xl md:mb-6">Customer Login</h1>
 
           {flash?.status && (
-            <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md text-sm">
+            <div className="mb-4 rounded-md bg-green-100 px-4 py-3 text-sm text-green-800">
               {flash.status}
             </div>
           )}
 
           {flash?.success && (
-            <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md text-sm">
+            <div className="mb-4 rounded-md bg-green-100 px-4 py-3 text-sm text-green-800">
               {flash.success}
             </div>
           )}
 
           {flash?.error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">
+            <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-800">
               {flash.error}
             </div>
           )}
@@ -60,7 +62,7 @@ export default function CustomerLogin() {
                 type="email"
                 value={data.email}
                 onChange={(e) => setData('email', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 placeholder="your@email.com"
                 maxLength={100}
               />
@@ -79,7 +81,7 @@ export default function CustomerLogin() {
                   type={showPassword ? 'text' : 'password'}
                   value={data.password}
                   onChange={(e) => setData('password', e.target.value)}
-                  className="w-full px-4 py-2 pr-12 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 pr-12 focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   placeholder="••••••••"
                   maxLength={64}
                 />
@@ -87,7 +89,7 @@ export default function CustomerLogin() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 cursor-pointer hover:text-gray-700"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
                 >
@@ -113,7 +115,7 @@ export default function CustomerLogin() {
             </button>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
+          <div className="mt-6 space-y-2 text-center">
             <p className="text-sm text-gray-600">
               Don&apos;t have an account?{' '}
               <Link href="/register" className="text-blue-600 hover:underline">
@@ -128,7 +130,7 @@ export default function CustomerLogin() {
             </p>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 border-t border-gray-200 pt-6">
             <p className="text-sm text-gray-600 text-center">
               Staff member?{' '}
               <Link href="/staff/login" className="text-blue-600 hover:underline">

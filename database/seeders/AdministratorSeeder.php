@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Hash;
  *   ADMIN_PASSWORD – the password (minimum 8 characters)
  *
  * Optional:
- *   ADMIN_FULL_NAME – defaults to 'System Administrator'
+ *   ADMIN_FULL_NAME – defaults to 'Christina Loizou'
  *
  * Run this seeder when provisioning a fresh environment:
  *   php artisan db:seed --class=AdministratorSeeder
@@ -28,8 +28,6 @@ class AdministratorSeeder extends Seeder
 {
     /**
      * Seed the administrator account using environment variables.
-     *
-     * @return void
      */
     public function run(): void
     {
@@ -38,7 +36,7 @@ class AdministratorSeeder extends Seeder
 
         if (empty($username) || empty($password)) {
             throw new \RuntimeException(
-                'AdministratorSeeder requires ADMIN_USERNAME and ADMIN_PASSWORD ' .
+                'AdministratorSeeder requires ADMIN_USERNAME and ADMIN_PASSWORD '.
                 'to be set in the environment.'
             );
         }
@@ -51,14 +49,15 @@ class AdministratorSeeder extends Seeder
 
         if (Staff::where('username', $username)->exists()) {
             $this->command->info("Administrator account '{$username}' already exists. Skipping.");
+
             return;
         }
 
         Staff::create([
-            'username'       => $username,
-            'password'       => Hash::make($password),
-            'role'           => StaffRole::Administrator,
-            'full_name'      => env('ADMIN_FULL_NAME', 'System Administrator'),
+            'username' => $username,
+            'password' => Hash::make($password),
+            'role' => StaffRole::Administrator,
+            'full_name' => env('ADMIN_FULL_NAME', 'Christina Loizou'),
             'account_status' => AccountStatus::Active,
         ]);
 

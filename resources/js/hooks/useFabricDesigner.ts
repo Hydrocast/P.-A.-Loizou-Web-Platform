@@ -1,6 +1,8 @@
 import { FabricImage, Shadow, Textbox } from 'fabric';
 import type { Canvas, FabricObject } from 'fabric';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+export const MAX_IMAGES = 20;
 
 type AddTextOptions = {
   text: string;
@@ -57,6 +59,7 @@ type UseFabricDesignerResult = {
   clearDesign: () => void;
   exportDesignJson: () => string;
   exportPreviewDataUrl: () => string | null;
+  exportPrintDataUrl: () => string | null;
   hasDesignElements: () => boolean;
   duplicateActiveObject: () => void;
   flipActiveObjectHorizontal: () => void;
@@ -308,6 +311,12 @@ function isTypingIntoField(target: EventTarget | null): boolean {
   );
 }
 
+function countCanvasImages(canvas: Canvas, previewText: Textbox | null): number {
+  return canvas
+    .getObjects()
+    .filter((object) => object !== previewText && object instanceof FabricImage).length;
+}
+
 export function useFabricDesigner(): UseFabricDesignerResult {
   const canvasRef = useRef<Canvas | null>(null);
   const historyRef = useRef<string[]>([]);
@@ -326,39 +335,47 @@ export function useFabricDesigner(): UseFabricDesignerResult {
   const ZOOM_MAX = 3.0;
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  const zoomIn = useCallback(() => {
+  const zoomIn = () => {
     setZoomLevel((previous) =>
       Math.min(+(previous + ZOOM_STEP).toFixed(2), ZOOM_MAX),
     );
-  }, []);
+  };
 
-  const zoomOut = useCallback(() => {
+  const zoomOut = () => {
     setZoomLevel((previous) =>
       Math.max(+(previous - ZOOM_STEP).toFixed(2), ZOOM_MIN),
     );
-  }, []);
+  };
 
-  const resetZoom = useCallback(() => {
+  const resetZoom = () => {
     setZoomLevel(1);
-  }, []);
+  };
 
-  const getCanvas = useCallback(() => {
+  const getCanvas = () => {
     if (!canvasRef.current) {
       throw new Error('Canvas is not ready yet.');
     }
 
     return canvasRef.current;
-  }, []);
+  };
 
-  const isPreviewTextbox = useCallback((object: FabricObject | null | undefined) => {
+  const ensureImageLimitNotExceeded = (canvas: Canvas) => {
+    const currentImageCount = countCanvasImages(canvas, previewTextRef.current);
+
+    if (currentImageCount >= MAX_IMAGES) {
+      throw new Error(`You can add up to ${MAX_IMAGES} images in a single design.`);
+    }
+  };
+
+  const isPreviewTextbox = (object: FabricObject | null | undefined) => {
     return !!object && object === previewTextRef.current;
-  }, []);
+  };
 
-  const refreshUndoState = useCallback(() => {
+  const refreshUndoState = () => {
     setCanUndo(historyRef.current.length > 1);
-  }, []);
+  };
 
-  const withPreviewHidden = useCallback(<T,>(callback: () => T): T => {
+  const withPreviewHidden = <T,>(callback: () => T): T => {
     const canvas = canvasRef.current;
     const previewText = previewTextRef.current;
 
@@ -382,13 +399,13 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
       canvas.requestRenderAll();
     }
-  }, []);
+  };
 
-  const getSnapshot = useCallback(() => {
+  const getSnapshot = () => {
     return withPreviewHidden(() => JSON.stringify(getCanvas().toJSON()));
-  }, [getCanvas, withPreviewHidden]);
+  };
 
-  const syncSelectionState = useCallback(() => {
+  const syncSelectionState = () => {
     const canvas = canvasRef.current;
 
     if (!canvas) {
@@ -419,9 +436,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
     setActiveObjectType(null);
     setActiveTextStyle(null);
-  }, [isPreviewTextbox]);
+  };
 
-  const pushSnapshot = useCallback(() => {
+  const pushSnapshot = () => {
     if (isRestoringRef.current) {
       return;
     }
@@ -435,15 +452,15 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
     historyRef.current.push(snapshot);
     refreshUndoState();
-  }, [getSnapshot, refreshUndoState]);
+  };
 
-  const clearPreviewState = useCallback(() => {
+  const clearPreviewState = () => {
     previewTextRef.current = null;
     previewTextStyleRef.current = null;
     setHasPendingTextPreview(false);
-  }, []);
+  };
 
-  const discardTextPreview = useCallback(() => {
+  const discardTextPreview = () => {
     const canvas = canvasRef.current;
     const previewText = previewTextRef.current;
 
@@ -459,9 +476,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
     clearPreviewState();
     syncSelectionState();
-  }, [clearPreviewState, syncSelectionState]);
+  };
 
-  const deleteActiveObject = useCallback(() => {
+  const deleteActiveObject = () => {
     const canvas = getCanvas();
     const activeObject = canvas.getActiveObject();
 
@@ -479,12 +496,11 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     canvas.requestRenderAll();
     pushSnapshot();
     syncSelectionState();
-  }, [discardTextPreview, getCanvas, isPreviewTextbox, pushSnapshot, syncSelectionState]);
+  };
 
   deleteActiveObjectRef.current = deleteActiveObject;
 
-  const attachCanvas = useCallback(
-    (canvas: Canvas) => {
+  const attachCanvas = (canvas: Canvas) => {
       canvasRef.current = canvas;
 
       canvas.on('selection:created', (event) => {
@@ -548,11 +564,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       });
 
       setIsReady(true);
-    },
-    [isPreviewTextbox, pushSnapshot, syncSelectionState],
-  );
+    };
 
-  const detachCanvas = useCallback(() => {
+  const detachCanvas = () => {
     const canvas = canvasRef.current;
 
     if (canvas) {
@@ -571,10 +585,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     setIsReady(false);
     setActiveObjectType(null);
     setActiveTextStyle(null);
-  }, [clearPreviewState]);
+  };
 
-  const initializeWorkspace = useCallback(
-    async (initialDesignJson?: string | null) => {
+  const initializeWorkspace = async (initialDesignJson?: string | null) => {
       const canvas = getCanvas();
 
       isRestoringRef.current = true;
@@ -605,12 +618,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       historyRef.current = [getSnapshot()];
       refreshUndoState();
       syncSelectionState();
-    },
-    [clearPreviewState, getCanvas, getSnapshot, refreshUndoState, syncSelectionState],
-  );
+    };
 
-  const addText = useCallback(
-    (options: AddTextOptions) => {
+  const addText = (options: AddTextOptions) => {
       const canvas = getCanvas();
       const text = options.text.trim();
 
@@ -625,12 +635,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       canvas.requestRenderAll();
       pushSnapshot();
       syncSelectionState();
-    },
-    [getCanvas, pushSnapshot, syncSelectionState],
-  );
+    };
 
-  const beginTextPreview = useCallback(
-    (options: AddTextOptions) => {
+  const beginTextPreview = (options: AddTextOptions) => {
       const canvas = getCanvas();
       const activeObject = canvas.getActiveObject();
 
@@ -676,12 +683,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       canvas.setActiveObject(textbox);
       canvas.requestRenderAll();
       syncSelectionState();
-    },
-    [getCanvas, isPreviewTextbox, syncSelectionState],
-  );
+    };
 
-  const updateTextPreview = useCallback(
-    (updates: Partial<ActiveTextStyle>) => {
+  const updateTextPreview = (updates: Partial<ActiveTextStyle>) => {
       const canvas = getCanvas();
       const previewText = previewTextRef.current;
 
@@ -720,11 +724,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       canvas.setActiveObject(previewText);
       canvas.requestRenderAll();
       syncSelectionState();
-    },
-    [getCanvas, syncSelectionState],
-  );
+    };
 
-  const commitTextPreview = useCallback(() => {
+  const commitTextPreview = () => {
     const canvas = getCanvas();
     const previewText = previewTextRef.current;
     const previewStyle = previewTextStyleRef.current;
@@ -751,11 +753,11 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     canvas.requestRenderAll();
     pushSnapshot();
     syncSelectionState();
-  }, [clearPreviewState, getCanvas, pushSnapshot, syncSelectionState]);
+  };
 
-  const addImageFromUrl = useCallback(
-    async (src: string) => {
+  const addImageFromUrl = async (src: string) => {
       const canvas = getCanvas();
+      ensureImageLimitNotExceeded(canvas);
       const imageElement = await loadImageElement(src);
 
       const image = new FabricImage(imageElement, {
@@ -797,12 +799,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       canvas.requestRenderAll();
       pushSnapshot();
       syncSelectionState();
-    },
-    [getCanvas, pushSnapshot, syncSelectionState],
-  );
+    };
 
-  const addImageFromFile = useCallback(
-    async (file: File) => {
+  const addImageFromFile = async (file: File) => {
       if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
         throw new Error('Only PNG, JPG, and JPEG files are allowed.');
       }
@@ -813,19 +812,13 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
       const dataUrl = await readFileAsDataUrl(file);
       await addImageFromUrl(dataUrl);
-    },
-    [addImageFromUrl],
-  );
+    };
 
-  const addClipart = useCallback(
-    async (imageUrl: string) => {
+  const addClipart = async (imageUrl: string) => {
       await addImageFromUrl(imageUrl);
-    },
-    [addImageFromUrl],
-  );
+    };
 
-  const updateActiveTextStyle = useCallback(
-    (updates: Partial<ActiveTextStyle>) => {
+  const updateActiveTextStyle = (updates: Partial<ActiveTextStyle>) => {
       const canvas = getCanvas();
       const activeObject = canvas.getActiveObject();
 
@@ -859,11 +852,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       canvas.requestRenderAll();
       pushSnapshot();
       syncSelectionState();
-    },
-    [getCanvas, isPreviewTextbox, pushSnapshot, syncSelectionState],
-  );
+    };
 
-  const undo = useCallback(async () => {
+  const undo = async () => {
     const canvas = getCanvas();
 
     if (previewTextRef.current) {
@@ -885,9 +876,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
 
     refreshUndoState();
     syncSelectionState();
-  }, [discardTextPreview, getCanvas, refreshUndoState, syncSelectionState]);
+  };
 
-  const clearDesign = useCallback(() => {
+  const clearDesign = () => {
     const canvas = getCanvas();
     const objects = [...canvas.getObjects()];
 
@@ -898,13 +889,13 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     clearPreviewState();
     pushSnapshot();
     syncSelectionState();
-  }, [clearPreviewState, getCanvas, pushSnapshot, syncSelectionState]);
+  };
 
-  const exportDesignJson = useCallback(() => {
+  const exportDesignJson = () => {
     return getSnapshot();
-  }, [getSnapshot]);
+  };
 
-  const exportPreviewDataUrl = useCallback(() => {
+  const exportPreviewDataUrl = () => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return null;
@@ -922,9 +913,29 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     } catch {
       return null;
     }
-  }, [withPreviewHidden]);
+  };
 
-  const hasDesignElements = useCallback(() => {
+  const exportPrintDataUrl = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return null;
+    }
+
+    try {
+      const currentZoom = canvas.getZoom();
+
+      return withPreviewHidden(() =>
+        canvas.toDataURL({
+          format: 'png',
+          multiplier: 1 / currentZoom,
+        }),
+      );
+    } catch {
+      return null;
+    }
+  };
+
+  const hasDesignElements = () => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return false;
@@ -933,14 +944,18 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     return canvas
       .getObjects()
       .some((object) => object !== previewTextRef.current);
-  }, []);
+  };
 
-  const duplicateActiveObject = useCallback(() => {
+  const duplicateActiveObject = () => {
     const canvas = getCanvas();
     const activeObject = canvas.getActiveObject();
 
     if (!activeObject || isPreviewTextbox(activeObject)) {
       return;
+    }
+
+    if (activeObject instanceof FabricImage) {
+      ensureImageLimitNotExceeded(canvas);
     }
 
     activeObject.clone().then((cloned: FabricObject) => {
@@ -956,9 +971,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
       pushSnapshot();
       syncSelectionState();
     });
-  }, [getCanvas, isPreviewTextbox, pushSnapshot, syncSelectionState]);
+  };
 
-  const flipActiveObjectHorizontal = useCallback(() => {
+  const flipActiveObjectHorizontal = () => {
     const canvas = getCanvas();
     const activeObject = canvas.getActiveObject();
 
@@ -969,9 +984,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     activeObject.set({ flipX: !activeObject.flipX });
     canvas.requestRenderAll();
     pushSnapshot();
-  }, [getCanvas, isPreviewTextbox, pushSnapshot]);
+  };
 
-  const flipActiveObjectVertical = useCallback(() => {
+  const flipActiveObjectVertical = () => {
     const canvas = getCanvas();
     const activeObject = canvas.getActiveObject();
 
@@ -982,9 +997,9 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     activeObject.set({ flipY: !activeObject.flipY });
     canvas.requestRenderAll();
     pushSnapshot();
-  }, [getCanvas, isPreviewTextbox, pushSnapshot]);
+  };
 
-  const scaleActiveObjectToFill = useCallback(() => {
+  const scaleActiveObjectToFill = () => {
     const canvas = getCanvas();
     const activeObject = canvas.getActiveObject();
 
@@ -1014,7 +1029,7 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     canvas.requestRenderAll();
     pushSnapshot();
     syncSelectionState();
-  }, [getCanvas, isPreviewTextbox, pushSnapshot, syncSelectionState]);
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -1096,6 +1111,7 @@ export function useFabricDesigner(): UseFabricDesignerResult {
     clearDesign,
     exportDesignJson,
     exportPreviewDataUrl,
+    exportPrintDataUrl,
     hasDesignElements,
     duplicateActiveObject,
     flipActiveObjectHorizontal,

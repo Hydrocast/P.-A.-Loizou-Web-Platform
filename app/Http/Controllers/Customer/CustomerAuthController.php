@@ -49,7 +49,9 @@ class CustomerAuthController extends Controller
 
     public function showLogin(): Response
     {
-        return Inertia::render('Customer/Auth/CustomerLogin');
+        return Inertia::render('Customer/Auth/CustomerLogin', [
+            'redirect' => request()->query('redirect'),
+        ]);
     }
 
     public function login(LoginCustomerRequest $request): RedirectResponse
@@ -95,6 +97,12 @@ class CustomerAuthController extends Controller
         $request->session()->regenerate();
         $request->session()->put('active_guard', 'customer');
 
+        $redirect = $request->input('redirect');
+
+        if (is_string($redirect) && str_starts_with($redirect, '/')) {
+            return redirect()->to($redirect);
+        }
+
         return redirect()->intended(route('home'));
     }
 
@@ -120,7 +128,7 @@ class CustomerAuthController extends Controller
             $request->validated()['email']
         );
 
-        return back()->with('status', 'If an account with that email exists, a reset link has been sent.');
+        return back()->with('status', 'If an account with that email exists, a reset link has been sent. If it doesn\'t arrive, be sure to check your spam folder.');
     }
 
     public function showResetPassword(string $token): Response

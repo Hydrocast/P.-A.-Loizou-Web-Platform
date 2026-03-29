@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\BrowseProductsRequest;
 use App\Http\Requests\SearchProductsRequest;
 use App\Models\CustomizablePrintProduct;
-use App\Models\ProductCategory;
 use App\Models\PricingTier;
+use App\Models\ProductCategory;
 use App\Models\StandardProduct;
 use App\Models\WishlistItem;
 use App\Services\ProductService;
@@ -58,7 +58,7 @@ class ProductCatalogController extends Controller
         if ($customerId) {
             $wishlistLookup = WishlistItem::where('customer_id', $customerId)
                 ->get()
-                ->keyBy(fn ($item) => $item->product_type->value . '-' . $item->product_id);
+                ->keyBy(fn ($item) => $item->product_type->value.'-'.$item->product_id);
         }
 
         $products = $products->map(function ($product) use ($wishlistLookup) {
@@ -67,7 +67,7 @@ class ProductCatalogController extends Controller
 
             $productType = $isStandard ? 'standard' : 'customizable';
 
-            $wishlistKey = $productType . '-' . $product->product_id;
+            $wishlistKey = $productType.'-'.$product->product_id;
             $wishlistItem = $wishlistLookup->get($wishlistKey);
 
             return [
@@ -125,7 +125,7 @@ class ProductCatalogController extends Controller
         if ($customerId) {
             $wishlistLookup = WishlistItem::where('customer_id', $customerId)
                 ->get()
-                ->keyBy(fn ($item) => $item->product_type->value . '-' . $item->product_id);
+                ->keyBy(fn ($item) => $item->product_type->value.'-'.$item->product_id);
         }
 
         $products = $products->map(function ($product) use ($wishlistLookup) {
@@ -134,7 +134,7 @@ class ProductCatalogController extends Controller
 
             $productType = $isStandard ? 'standard' : 'customizable';
 
-            $wishlistKey = $productType . '-' . $product->product_id;
+            $wishlistKey = $productType.'-'.$product->product_id;
             $wishlistItem = $wishlistLookup->get($wishlistKey);
 
             return [
@@ -182,6 +182,7 @@ class ProductCatalogController extends Controller
         $pricingTiers = collect();
         $colorOptions = [];
         $productDetails = null;
+        $sizeOptions = [];
 
         if ($type === 'standard' && ! empty($product->category_id)) {
             $category = ProductCategory::where('category_id', $product->category_id)->first();
@@ -198,6 +199,10 @@ class ProductCatalogController extends Controller
                 );
 
                 $productDetails = DesignProfileRegistry::getProductDetails(
+                    $product->design_profile_key,
+                );
+
+                $sizeOptions = DesignProfileRegistry::getSizeOptions(
                     $product->design_profile_key,
                 );
             }
@@ -219,6 +224,7 @@ class ProductCatalogController extends Controller
             'category' => $category,
             'pricingTiers' => $pricingTiers,
             'colorOptions' => $colorOptions,
+            'sizeOptions' => $sizeOptions,
             'productDetails' => $productDetails,
         ]);
     }

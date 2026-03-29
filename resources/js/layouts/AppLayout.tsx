@@ -1,5 +1,5 @@
-import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
+import Header from "@/components/public/Header";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (

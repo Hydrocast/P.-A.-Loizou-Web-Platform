@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import { Plus, Edit, UserX, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import Modal, { ConfirmDialog } from '@/components/public/Modal';
 
 type StaffAccount = {
@@ -30,8 +30,6 @@ export default function StaffManagement({
   const [selectedStaff, setSelectedStaff] = useState<StaffAccount | null>(null);
   const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
   const [staffToToggle, setStaffToToggle] = useState<StaffAccount | null>(null);
-  const [successMessage, setSuccessMessage] = useState(flash.success ?? '');
-  const [errorMessage, setErrorMessage] = useState(flash.error ?? '');
   const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [showEditPassword, setShowEditPassword] = useState(false);
 
@@ -50,11 +48,6 @@ export default function StaffManagement({
   const statusForm = useForm({
     account_status: 'Inactive' as 'Active' | 'Inactive',
   });
-
-  useEffect(() => {
-    setSuccessMessage(flash.success ?? '');
-    setErrorMessage(flash.error ?? '');
-  }, [flash.success, flash.error]);
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
@@ -130,33 +123,112 @@ export default function StaffManagement({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
-      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-6">
-        <h2 className="text-2xl font-semibold text-purple-900">Staff Management</h2>
+    <div className="overflow-hidden rounded-lg bg-white p-4 shadow-md sm:p-5 md:p-6">
+      <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-semibold text-purple-900 sm:text-2xl">Staff Management</h2>
 
         <button
           onClick={openAddModal}
-          className="flex items-center justify-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer sm:w-auto"
+          className="flex w-full items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors cursor-pointer hover:bg-purple-700 sm:w-auto"
         >
           <Plus className="w-5 h-5 mr-2" />
           Create Staff Account
         </button>
       </div>
 
-      {successMessage && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-md border border-green-200">
-          {successMessage}
+      {flash.success && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-800 sm:text-base">
+          {flash.success}
         </div>
       )}
 
-      {errorMessage && (
-        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-md border border-red-200">
-          {errorMessage}
+      {flash.error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-100 px-4 py-3 text-sm text-red-800 sm:text-base">
+          {flash.error}
         </div>
       )}
 
       {/* Staff Table */}
-      <div className="w-full overflow-hidden">
+      <div className="md:hidden">
+        {accounts.length === 0 ? (
+          <div className="rounded-md border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No staff accounts found.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {accounts.map((staffMember) => (
+              <div
+                key={staffMember.staff_id}
+                className="rounded-md border border-gray-200 p-4"
+              >
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Username</p>
+                    <p className="mt-1 break-all font-medium text-gray-900">{staffMember.username}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Full Name</p>
+                    <p className="mt-1 wrap-break-word text-gray-700">{staffMember.full_name ?? '—'}</p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span
+                      className={`inline-flex rounded px-2 py-1 text-xs font-semibold ${
+                        staffMember.role === 'Administrator'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
+                      {staffMember.role}
+                    </span>
+
+                    <span
+                      className={`inline-flex rounded px-2 py-1 text-xs font-semibold ${
+                        staffMember.account_status === 'Active'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {staffMember.account_status}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <button
+                      onClick={() => openEditModal(staffMember)}
+                      className="inline-flex items-center gap-2 rounded-md border border-purple-200 px-3 py-2 text-sm text-purple-700 transition-colors hover:bg-purple-50 cursor-pointer"
+                      title="Edit Staff"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => openToggleConfirm(staffMember)}
+                      className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors cursor-pointer ${
+                        staffMember.account_status === 'Active'
+                          ? 'border border-red-200 text-red-700 hover:bg-red-50'
+                          : 'border border-green-200 text-green-700 hover:bg-green-50'
+                      }`}
+                      title={staffMember.account_status === 'Active' ? 'Deactivate' : 'Activate'}
+                    >
+                      {staffMember.account_status === 'Active' ? (
+                        <UserX className="h-4 w-4" />
+                      ) : (
+                        <UserCheck className="h-4 w-4" />
+                      )}
+                      {staffMember.account_status === 'Active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden w-full overflow-hidden md:block">
         <table className="w-full table-fixed">
           <thead className="bg-gray-50">
             <tr>
@@ -177,7 +249,7 @@ export default function StaffManagement({
               </tr>
             ) : (
               accounts.map((staffMember) => (
-                <tr key={staffMember.staff_id} className="hover:bg-gray-50 transition-colors align-top">
+                <tr key={staffMember.staff_id} className="align-top transition-colors hover:bg-gray-50">
                   <td className="px-4 py-3 font-medium text-gray-900">
                     <div className="min-w-0 whitespace-normal break-all">
                       {staffMember.username}
@@ -185,14 +257,14 @@ export default function StaffManagement({
                   </td>
 
                   <td className="px-4 py-3 text-gray-700">
-                    <div className="min-w-0 whitespace-normal break-words">
+                    <div className="min-w-0 whitespace-normal wrap-break-word">
                       {staffMember.full_name ?? '—'}
                     </div>
                   </td>
 
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex max-w-full whitespace-normal break-words px-2 py-1 rounded text-xs font-semibold ${
+                      className={`inline-flex max-w-full whitespace-normal wrap-break-word rounded px-2 py-1 text-xs font-semibold ${
                         staffMember.role === 'Administrator'
                           ? 'bg-purple-100 text-purple-800'
                           : 'bg-blue-100 text-blue-800'
@@ -204,7 +276,7 @@ export default function StaffManagement({
 
                   <td className="px-4 py-3">
                     <span
-                      className={`inline-flex max-w-full whitespace-normal break-words px-2 py-1 rounded text-xs font-semibold ${
+                      className={`inline-flex max-w-full whitespace-normal wrap-break-word rounded px-2 py-1 text-xs font-semibold ${
                         staffMember.account_status === 'Active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
@@ -215,18 +287,18 @@ export default function StaffManagement({
                   </td>
 
                   <td className="px-4 py-3">
-                    <div className="flex justify-end items-start gap-2">
+                    <div className="flex items-start justify-end gap-2">
                       <button
                         onClick={() => openEditModal(staffMember)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded transition-colors cursor-pointer flex-shrink-0"
+                        className="shrink-0 rounded p-2 text-purple-600 transition-colors cursor-pointer hover:bg-purple-50"
                         title="Edit Staff"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="h-4 w-4" />
                       </button>
 
                       <button
                         onClick={() => openToggleConfirm(staffMember)}
-                        className={`p-2 rounded transition-colors cursor-pointer flex-shrink-0 ${
+                        className={`shrink-0 rounded p-2 transition-colors cursor-pointer ${
                           staffMember.account_status === 'Active'
                             ? 'text-red-600 hover:bg-red-50'
                             : 'text-green-600 hover:bg-green-50'
@@ -234,9 +306,9 @@ export default function StaffManagement({
                         title={staffMember.account_status === 'Active' ? 'Deactivate' : 'Activate'}
                       >
                         {staffMember.account_status === 'Active' ? (
-                          <UserX className="w-4 h-4" />
+                          <UserX className="h-4 w-4" />
                         ) : (
-                          <UserCheck className="w-4 h-4" />
+                          <UserCheck className="h-4 w-4" />
                         )}
                       </button>
                     </div>
@@ -334,17 +406,17 @@ export default function StaffManagement({
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={closeAddModal}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors cursor-pointer hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleAddStaff}
               disabled={createForm.processing}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer disabled:opacity-60"
+              className="w-full rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-purple-700 disabled:opacity-60 sm:w-auto"
             >
               Create Staff
             </button>
@@ -420,17 +492,17 @@ export default function StaffManagement({
             </p>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={closeEditModal}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors cursor-pointer hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleEditStaff}
               disabled={editForm.processing}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer disabled:opacity-60"
+              className="w-full rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors cursor-pointer hover:bg-purple-700 disabled:opacity-60 sm:w-auto"
             >
               Save Changes
             </button>

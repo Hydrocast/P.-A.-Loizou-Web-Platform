@@ -8,7 +8,9 @@ import {
   LogOut,
   FolderOpen,
   BadgePercent,
+  ArrowUp,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import StaffAnalytics from '../../components/admin/Analytics';
 import PricingConfiguration from '../../components/admin/PricingConfiguration';
@@ -33,12 +35,32 @@ type StaffAccount = {
   account_status: 'Active' | 'Inactive';
 };
 
+type SalesDataPoint = {
+  date_key: string;
+  date_label: string;
+  sales: number;
+};
+
+type SalesSummary = {
+  peak_day: {
+    date_label: string;
+    sales: number;
+  } | null;
+  low_day: {
+    date_label: string;
+    sales: number;
+  } | null;
+  average_daily_sales: number;
+};
+
 type AnalyticsDashboard = {
   total_order_value: number;
   order_count: number;
   average_order_value: number;
   average_items_per_order: number;
   status_distribution: Record<string, number>;
+  daily_sales: SalesDataPoint[];
+  sales_summary: SalesSummary | null;
   start_date: string;
   end_date: string;
   has_data: boolean;
@@ -81,6 +103,7 @@ type PageProps = {
     query?: string | null;
   };
   analyticsFilters?: {
+    preset?: string | null;
     start_date?: string | null;
     end_date?: string | null;
   };
@@ -97,47 +120,57 @@ type PageProps = {
   selectedProductId?: number | null;
 };
 
+const menuItems = [
+  { path: '/staff/orders', label: 'Orders', icon: Package, roles: ['Employee', 'Administrator'] },
+  { path: '/staff/products', label: 'Products', icon: ShoppingBag, roles: ['Employee', 'Administrator'] },
+  { path: '/staff/categories', label: 'Categories', icon: FolderOpen, roles: ['Employee', 'Administrator'] },
+  { path: '/staff/carousel', label: 'Carousel', icon: ImageIcon, roles: ['Employee', 'Administrator'] },
+  { path: '/staff/management', label: 'Staff', icon: Users, roles: ['Administrator'] },
+  { path: '/staff/pricing', label: 'Pricing', icon: BadgePercent, roles: ['Administrator'] },
+  { path: '/staff/analytics', label: 'Analytics', icon: BarChart3, roles: ['Administrator'] },
+];
+
 export default function StaffDashboard() {
   const { props, url } = usePage<PageProps>();
   const staff = props.auth.staff;
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
-  if (!staff) {
-    return null;
-  }
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 160);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     router.post('/staff/logout');
   };
 
-  const menuItems = [
-    { path: '/staff/orders', label: 'Orders', icon: Package, roles: ['Employee', 'Administrator'] },
-    { path: '/staff/products', label: 'Products', icon: ShoppingBag, roles: ['Employee', 'Administrator'] },
-    { path: '/staff/categories', label: 'Categories', icon: FolderOpen, roles: ['Employee', 'Administrator'] },
-    { path: '/staff/carousel', label: 'Carousel', icon: ImageIcon, roles: ['Employee', 'Administrator'] },
-    { path: '/staff/management', label: 'Staff', icon: Users, roles: ['Administrator'] },
-    { path: '/staff/pricing', label: 'Pricing', icon: BadgePercent, roles: ['Administrator'] },
-    { path: '/staff/analytics', label: 'Analytics', icon: BarChart3, roles: ['Administrator'] },
-  ];
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
-  const visibleMenuItems = menuItems.filter((item) => item.roles.includes(staff.role));
+  const visibleMenuItems = staff ? menuItems.filter((item) => item.roles.includes(staff.role)) : [];
   const isActivePath = (path: string) => url === path || url.startsWith(`${path}/`);
 
-  const pageTitle =
-    url.startsWith('/staff/orders')
-      ? 'Order Management'
-      : url.startsWith('/staff/products')
-        ? 'Product Management'
-        : url.startsWith('/staff/categories')
-          ? 'Category Management'
-          : url.startsWith('/staff/carousel')
-            ? 'Carousel Management'
-            : url === '/staff/management'
-              ? 'Staff Management'
-              : url.startsWith('/staff/pricing')
-                ? 'Pricing Management'
-                : url.startsWith('/staff/analytics')
-                  ? 'Analytics'
-                  : 'Staff Dashboard';
+  const pageTitle = (() => {
+    if (url.startsWith('/staff/orders')) return 'Order Management';
+    if (url.startsWith('/staff/products')) return 'Product Management';
+    if (url.startsWith('/staff/categories')) return 'Category Management';
+    if (url.startsWith('/staff/carousel')) return 'Carousel Management';
+    if (url === '/staff/management') return 'Staff Management';
+    if (url.startsWith('/staff/pricing')) return 'Pricing Management';
+    if (url.startsWith('/staff/analytics')) return 'Analytics';
+    return 'Staff Dashboard';
+  })();
+
+  if (!staff) {
+    return null;
+  }
 
   return (
     <>
@@ -146,18 +179,22 @@ export default function StaffDashboard() {
       <div className="min-h-screen bg-gray-100">
         <div className="bg-white shadow-sm">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              <div>
-                <h1 className="text-xl font-bold text-purple-600">Staff Dashboard</h1>
+            <div className="flex min-h-16 flex-col gap-3 py-3 sm:h-16 sm:flex-row sm:items-center sm:justify-between sm:py-0">
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold text-purple-600 sm:text-xl">
+                  Staff Dashboard
+                </h1>
                 <p className="text-sm text-gray-600">{staff.role}</p>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">{staff.full_name ?? staff.username}</span>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                <span className="text-sm text-gray-600 wrap-break-word">
+                  {staff.full_name ?? staff.username}
+                </span>
 
                 <button
                   onClick={handleLogout}
-                  className="flex cursor-pointer items-center text-gray-700 transition-colors hover:text-purple-600"
+                  className="inline-flex cursor-pointer items-center rounded-md border border-gray-200 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-50 hover:text-purple-600 sm:border-0 sm:px-0 sm:py-0"
                 >
                   <LogOut className="mr-2 h-5 w-5" />
                   Logout
@@ -167,10 +204,10 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-5">
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-5 md:gap-6">
             <div className="md:col-span-1">
-              <div className="rounded-lg bg-white p-4 shadow-sm">
+              <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-4">
                 <nav className="space-y-1">
                   {visibleMenuItems.map((item) => {
                     const Icon = item.icon;
@@ -180,7 +217,7 @@ export default function StaffDashboard() {
                       <Link
                         key={item.path}
                         href={item.path}
-                        className={`flex items-center rounded-md px-4 py-2 transition-colors cursor-pointer ${
+                        className={`flex items-center rounded-md px-4 py-2.5 transition-colors cursor-pointer md:py-2 ${
                           active
                             ? 'bg-purple-100 font-medium text-purple-700'
                             : 'text-gray-700 hover:bg-gray-100'
@@ -193,7 +230,7 @@ export default function StaffDashboard() {
                   })}
                 </nav>
 
-                <div className="mt-6 border-t pt-6">
+                <div className="mt-5 border-t pt-5 sm:mt-6 sm:pt-6">
                   <Link href="/" className="block text-center text-sm text-purple-600 hover:underline">
                     View Main Site
                   </Link>
@@ -264,6 +301,24 @@ export default function StaffDashboard() {
             </div>
           </div>
         </div>
+
+        {showBackToTop && (
+          <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 sm:bottom-6">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-5 md:gap-6">
+                <div className="flex justify-start md:justify-end">
+                  <button
+                    onClick={scrollToTop}
+                    className="pointer-events-auto cursor-pointer rounded-full bg-purple-600 p-2.5 text-white shadow-lg transition-all duration-300 hover:bg-purple-700 sm:p-3"
+                    aria-label="Back to top"
+                  >
+                    <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

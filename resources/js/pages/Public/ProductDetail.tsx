@@ -39,6 +39,11 @@ type ColorOption = {
   thumbnail_url?: string | null;
 };
 
+type SizeOption = {
+  value: string;
+  label: string;
+};
+
 type PageProps = {
   product: Product;
   type: 'standard' | 'customizable';
@@ -47,6 +52,7 @@ type PageProps = {
   category: Category | null;
   pricingTiers: PricingTier[];
   colorOptions: ColorOption[];
+  sizeOptions: SizeOption[];
   productDetails: ProductDetails | null;
   auth?: {
     customer?: {
@@ -66,6 +72,7 @@ export default function ProductDetail() {
     category,
     pricingTiers,
     colorOptions,
+    sizeOptions,
     productDetails,
     auth,
   } = usePage<PageProps>().props;
@@ -76,9 +83,8 @@ export default function ProductDetail() {
   const [isInWishlist, setIsInWishlist] = useState(inWishlist);
   const [currentWishlistItemId, setCurrentWishlistItemId] = useState<number | null>(wishlistItemId);
   const [showMessage, setShowMessage] = useState('');
-  const [selectedColorId, setSelectedColorId] = useState<string | null>(
-    colorOptions[0]?.id ?? null,
-  );
+  const [selectedColorId, setSelectedColorId] = useState<string | null>(null);
+  const [selectedSizeValue, setSelectedSizeValue] = useState<string>('');
 
   useEffect(() => {
     return () => {
@@ -101,8 +107,20 @@ export default function ProductDetail() {
     }, 3000);
   };
 
+  const effectiveSelectedColorId =
+    selectedColorId &&
+    colorOptions.some((option) => option.id === selectedColorId)
+      ? selectedColorId
+      : (colorOptions[0]?.id ?? null);
+
+  const effectiveSelectedSizeValue =
+    selectedSizeValue !== '' &&
+    sizeOptions.some((option) => option.value === selectedSizeValue)
+      ? selectedSizeValue
+      : (sizeOptions[0]?.value ?? '');
+
   const selectedColor =
-    colorOptions.find((option) => option.id === selectedColorId) ??
+    colorOptions.find((option) => option.id === effectiveSelectedColorId) ??
     colorOptions[0] ??
     null;
 
@@ -147,31 +165,44 @@ export default function ProductDetail() {
 
   const handleCustomize = () => {
     if (!customer) {
-      router.visit('/login');
+      const returnTo = window.location.pathname + window.location.search;
+
+      router.visit('/login', {
+        data: { redirect: returnTo },
+      });
       return;
     }
 
-    const colorQuery = selectedColorId
-      ? `?color=${encodeURIComponent(selectedColorId)}`
-      : '';
+    const params = new URLSearchParams();
 
-    router.visit(`/design/${product.product_id}${colorQuery}`);
+    if (effectiveSelectedColorId) {
+      params.set('color', effectiveSelectedColorId);
+    }
+
+    if (effectiveSelectedSizeValue) {
+      params.set('size', effectiveSelectedSizeValue);
+    }
+
+    const queryString = params.toString();
+    const suffix = queryString ? `?${queryString}` : '';
+
+    router.visit(`/design/${product.product_id}${suffix}`);
   };
 
   return (
     <>
       <Head title={product.product_name} />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {showMessage && (
           <div className="mb-4 rounded-md bg-green-100 p-4 text-green-800">
             {showMessage}
           </div>
         )}
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           <div>
-            <div className="flex h-96 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-100 p-4 shadow-md">
+            <div className="flex h-72 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-100 p-4 shadow-md sm:h-80 md:h-96">
               {displayedProductImage ? (
                 <img
                   src={displayedProductImage}
@@ -185,17 +216,17 @@ export default function ProductDetail() {
 
             {type === 'customizable' && colorOptions.length > 0 && (
               <div className="mt-4">
-                <h3 className="mb-2 text-sm font-semibold text-gray-900">T-Shirt Color</h3>
+                <h3 className="mb-2 text-sm font-semibold text-gray-900">Color</h3>
 
                 {selectedColor && (
                   <p className="mb-3 text-sm text-gray-600">
-                    Color: {selectedColor.label}
+                    {selectedColor.label}
                   </p>
                 )}
 
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5">
                   {colorOptions.map((option) => {
-                    const isSelected = option.id === selectedColorId;
+                    const isSelected = option.id === effectiveSelectedColorId;
 
                     return (
                       <button
@@ -233,7 +264,7 @@ export default function ProductDetail() {
           <div>
             <div className="mb-4 flex items-start gap-3">
               <div className="min-w-0 flex-1 pr-2">
-                <h1 className="mb-2 break-words text-3xl font-bold leading-tight">
+                <h1 className="mb-2 wrap-break-word text-2xl font-bold leading-tight sm:text-3xl">
                   {product.product_name}
                 </h1>
 
@@ -246,12 +277,12 @@ export default function ProductDetail() {
 
               <button
                 onClick={handleAddToWishlist}
-                className={`shrink-0 rounded-full p-2 ${
+                className={`shrink-0 rounded-full p-1.5 sm:p-2 ${
                   isInWishlist ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
                 } hover:bg-red-200`}
                 title={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
               >
-                <Heart className={`h-6 w-6 cursor-pointer ${isInWishlist ? 'fill-current' : ''}`} />
+                <Heart className={`h-5 w-5 cursor-pointer sm:h-6 sm:w-6 ${isInWishlist ? 'fill-current' : ''}`} />
               </button>
             </div>
 
@@ -276,7 +307,7 @@ export default function ProductDetail() {
                           {productDetails.columns.map((column) => (
                             <th
                               key={column}
-                              className="px-3 py-2 text-left font-semibold text-gray-700"
+                              className="px-2 py-2 text-left font-semibold text-gray-700 sm:px-3"
                             >
                               {column}
                             </th>
@@ -287,13 +318,13 @@ export default function ProductDetail() {
                       <tbody className="divide-y divide-gray-200 bg-white">
                         {productDetails.rows.map((row, index) => (
                           <tr key={`${row.join('-')}-${index}`}>
-                            <td className="px-3 py-2 font-medium text-gray-900">
+                            <td className="px-2 py-2 font-medium text-gray-900 sm:px-3">
                               {row[0] ?? ''}
                             </td>
-                            <td className="px-3 py-2 text-gray-700">
+                            <td className="px-2 py-2 text-gray-700 sm:px-3">
                               {row[1] ?? ''}
                             </td>
-                            <td className="px-3 py-2 text-gray-700">
+                            <td className="px-2 py-2 text-gray-700 sm:px-3">
                               {row[2] ?? ''}
                             </td>
                           </tr>
@@ -303,6 +334,27 @@ export default function ProductDetail() {
                   </div>
                 </div>
               )}
+
+            {type === 'customizable' && sizeOptions.length > 0 && (
+              <div className="mb-5">
+                <h3 className="mb-2 text-sm font-semibold text-gray-900">Size</h3>
+
+                <div className="max-w-xs">
+                  <select
+                    value={effectiveSelectedSizeValue}
+                    onChange={(e) => setSelectedSizeValue(e.target.value)}
+                    className="h-10 w-full cursor-pointer rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700"
+                    aria-label="Select size"
+                  >
+                    {sizeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
 
             {type === 'standard' ? (
               <div className="mb-6">
@@ -338,9 +390,9 @@ export default function ProductDetail() {
                     pricingTiers.map((tier, index) => (
                       <div
                         key={tier.pricing_tier_id ?? index}
-                        className="flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-sm"
+                        className="flex flex-col gap-1 rounded-md bg-gray-50 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <span className="text-gray-700">
+                        <span className="text-gray-700 wrap-break-word">
                           {tier.minimum_quantity} - {tier.maximum_quantity} items
                         </span>
                         <span className="font-semibold text-blue-600">
@@ -370,7 +422,7 @@ export default function ProductDetail() {
               </button>
             )}
 
-            <Link href="/catalog" className="mt-4 block text-center text-blue-600 hover:underline">
+            <Link href="/catalog" className="mt-4 block text-center text-blue-600 hover:underline sm:mt-5">
               ← Back to Catalog
             </Link>
           </div>

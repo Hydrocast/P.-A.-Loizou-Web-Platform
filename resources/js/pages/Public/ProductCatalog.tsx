@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Search, Heart, ChevronDown, ArrowUp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import shoppingBagImage from '../../assets/shopping-bag.png';
 
 type Product = {
   product_id?: number;
@@ -94,7 +95,7 @@ export default function ProductCatalog({
       setShowBackToTop(window.scrollY > 400);
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -283,13 +284,22 @@ export default function ProductCatalog({
           `,
         }}
       >
-        <div className="relative z-10 mx-auto max-w-6xl px-6 py-8 sm:px-8 lg:px-10 xl:px-12">
-          <h1 className="mb-8 bg-linear-to-r from-purple-700 via-fuchsia-500 to-orange-500 bg-clip-text text-[2.65rem] font-black leading-tight text-transparent md:text-5xl">
-            Product Catalog
-          </h1>
+        <div className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-10 xl:px-12">
+          <div className="mb-2 flex items-center gap-3 sm:mb-4 sm:gap-4">
+            <h1 className="bg-linear-to-r from-purple-700 via-fuchsia-500 to-orange-500 bg-clip-text text-4xl font-black leading-tight text-transparent sm:text-[2.65rem] md:text-5xl">
+              Product Catalog
+            </h1>
 
-          <div className="mb-8 rounded-lg border border-white/70 bg-white/90 p-6 shadow-sm backdrop-blur-[1.5px]">
-            <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-12">
+            <img
+              src={shoppingBagImage}
+              alt=""
+              aria-hidden="true"
+              className="ml-1 h-16 w-16 rotate-12 object-contain sm:ml-2 sm:h-20 sm:w-20 md:ml-3 md:h-24 md:w-24"
+            />
+          </div>
+
+          <div className="mb-8 rounded-lg border border-white/70 bg-white/90 p-4 shadow-sm backdrop-blur-[1.5px] sm:p-5 md:p-6">
+            <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 md:grid-cols-12">
               <div className="md:col-span-4">
                 <label className="mb-1 block text-sm font-medium text-gray-700">Search</label>
                 <div className="relative">
@@ -354,11 +364,11 @@ export default function ProductCatalog({
               </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <p className="text-gray-600">{pagination.total} products found</p>
 
-              <div className="flex flex-wrap items-center justify-end gap-4 text-sm text-gray-700">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-3 text-sm text-gray-700 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end sm:gap-4">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-gray-600">Page</span>
                   <div className="relative">
                     <select
@@ -380,7 +390,7 @@ export default function ProductCatalog({
                   <span className="text-gray-500">of {pagination.last_page}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-gray-600">Per page</span>
                   <div className="relative">
                     <select
@@ -403,35 +413,37 @@ export default function ProductCatalog({
           </div>
 
           {products.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
               {products.map((product) => {
                 const productTypeValue = getProductType(product);
                 const productId = getProductId(product);
+                const priceLabel = getPriceLabel(product);
 
                 return (
                   <Link
                     key={`${productTypeValue}-${productId}`}
                     href={`/product/${productTypeValue}/${productId}`}
-                    className="group relative cursor-pointer overflow-hidden rounded-lg bg-white/92 shadow-sm transition-all hover:shadow-lg backdrop-blur-[1px]"
+                    className="group relative cursor-pointer overflow-hidden rounded-lg bg-white/92 shadow-sm transition-all backdrop-blur-[1px] hover:shadow-lg"
                   >
                     <button
                       type="button"
                       onClick={(e) => handleWishlistToggle(e, product)}
-                      className={`absolute right-3 top-3 z-10 cursor-pointer rounded-full p-2 shadow-sm transition-colors ${
+                      className={`absolute right-2 top-2 z-10 cursor-pointer rounded-full p-1.5 shadow-sm transition-colors sm:right-3 sm:top-3 sm:p-2 ${
                         product.in_wishlist
                           ? 'bg-red-100 text-red-600 hover:bg-red-200'
                           : 'bg-gray-100 text-gray-600 hover:bg-red-200 hover:text-red-600'
                       }`}
                       title={product.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist'}
                     >
-                      <Heart className={`h-5 w-5 ${product.in_wishlist ? 'fill-current' : ''}`} />
+                      <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${product.in_wishlist ? 'fill-current' : ''}`} />
                     </button>
 
-                    <div className="flex h-52 w-full items-center justify-center overflow-hidden bg-gray-100 p-3">
+                    <div className="flex h-44 w-full items-center justify-center overflow-hidden bg-gray-100 p-3 sm:h-48 lg:h-52">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
                           alt={product.product_name}
+                          loading="lazy"
                           className="h-full w-full object-contain transition-opacity group-hover:opacity-90"
                         />
                       ) : (
@@ -439,14 +451,14 @@ export default function ProductCatalog({
                       )}
                     </div>
 
-                    <div className="p-3.5 transition-colors group-hover:bg-purple-50">
-                      <div className="mb-1.5 flex items-start justify-between gap-2 pr-6">
-                        <h3 className="min-h-10 min-w-0 flex-1 line-clamp-2 text-base font-semibold leading-5 transition-colors group-hover:text-purple-700">
+                    <div className="p-3 transition-colors group-hover:bg-purple-50 sm:p-3.5">
+                      <div className="mb-1.5 flex items-start justify-between gap-2 pr-5 sm:pr-6">
+                        <h3 className="min-h-10 min-w-0 flex-1 line-clamp-2 text-sm font-semibold leading-5 transition-colors group-hover:text-purple-700 sm:text-base">
                           {product.product_name}
                         </h3>
 
                         <span
-                          className={`shrink-0 self-start whitespace-nowrap rounded px-1.5 py-1 text-[11px] ${
+                          className={`shrink-0 self-start whitespace-nowrap rounded px-1.5 py-1 text-[10px] sm:text-[11px] ${
                             productTypeValue === 'customizable'
                               ? 'bg-blue-100 text-blue-800'
                               : 'bg-gray-100 text-gray-800'
@@ -456,12 +468,12 @@ export default function ProductCatalog({
                         </span>
                       </div>
 
-                      <p className="mb-2.5 min-h-10 line-clamp-2 text-sm leading-5 text-gray-600">
+                      <p className="mb-2 min-h-10 line-clamp-2 text-sm leading-5 text-gray-600 sm:mb-2.5">
                         {product.description ?? 'No description available.'}
                       </p>
 
-                      {getPriceLabel(product) && (
-                        <p className="font-bold text-purple-600">{getPriceLabel(product)}</p>
+                      {priceLabel && (
+                        <p className="font-bold text-purple-600">{priceLabel}</p>
                       )}
                     </div>
                   </Link>
@@ -478,10 +490,10 @@ export default function ProductCatalog({
         {showBackToTop && (
           <button
             onClick={scrollToTop}
-            className="fixed bottom-6 right-6 z-50 cursor-pointer rounded-full bg-purple-600 p-3 text-white shadow-lg transition-all duration-300 hover:bg-purple-700"
+            className="fixed bottom-4 right-4 z-50 cursor-pointer rounded-full bg-purple-600 p-2.5 text-white shadow-lg transition-all duration-300 hover:bg-purple-700 sm:bottom-6 sm:right-6 sm:p-3"
             aria-label="Back to top"
           >
-            <ArrowUp className="h-5 w-5" />
+            <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         )}
       </div>

@@ -18,8 +18,6 @@ class SaveDesignRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -34,10 +32,11 @@ class SaveDesignRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id'              => ['required', 'integer', 'exists:customizable_print_products,product_id'],
-            'design_name'             => ['required', 'string', 'min:1', 'max:100'],
-            'design_data'             => ['required', 'string'],
+            'product_id' => ['required', 'integer', 'exists:customizable_print_products,product_id'],
+            'design_name' => ['required', 'string', 'min:1', 'max:100'],
+            'design_data' => ['required', 'string'],
             'preview_image_reference' => ['nullable', 'string'],
+            'print_file_reference' => ['nullable', 'string'],
             'customization_options' => ['nullable', 'array'],
             'customization_options.shirt_color' => ['nullable', 'array'],
             'customization_options.shirt_color.id' => ['nullable', 'string'],
@@ -45,6 +44,9 @@ class SaveDesignRequest extends FormRequest
             'customization_options.print_sides' => ['nullable', 'array'],
             'customization_options.print_sides.value' => ['nullable', 'string'],
             'customization_options.print_sides.label' => ['nullable', 'string'],
+            'customization_options.size' => ['nullable', 'array'],
+            'customization_options.size.value' => ['nullable', 'string'],
+            'customization_options.size.label' => ['nullable', 'string'],
         ];
     }
 
@@ -56,9 +58,9 @@ class SaveDesignRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.exists'   => 'The specified product does not exist.',
-            'design_name.min'     => 'Design name must be at least 1 character.',
-            'design_name.max'     => 'Design name must not exceed 100 characters.',
+            'product_id.exists' => 'The specified product does not exist.',
+            'design_name.min' => 'Design name must be at least 1 character.',
+            'design_name.max' => 'Design name must not exceed 100 characters.',
             'design_data.required' => 'No design data was provided.',
         ];
     }

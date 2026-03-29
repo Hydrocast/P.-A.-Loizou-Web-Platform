@@ -8,8 +8,12 @@ import {
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { NormalizedTemplateConfig } from '@/lib/design/template';
+import { useEffect, useRef, useState } from 'react';
+import {
+  resolvePrintArea
+  
+} from '@/lib/design/template';
+import type {NormalizedTemplateConfig} from '@/lib/design/template';
 
 type FabricDesignerCanvasProps = {
   template: NormalizedTemplateConfig;
@@ -21,7 +25,7 @@ type FabricDesignerCanvasProps = {
   onResetZoom: () => void;
   attachCanvas: (canvas: Canvas) => void;
   detachCanvas: () => void;
-  initializeWorkspace: (initialDesignJson?: string | null, zoom?: number) => Promise<void>;
+  initializeWorkspace: (initialDesignJson?: string | null) => Promise<void>;
   activeObjectType: 'text' | 'image' | null;
   onDuplicate: () => void;
   onFlipH: () => void;
@@ -36,13 +40,8 @@ type PrintAreaBox = {
   height: string;
 };
 
-function getTShirtPrintArea(): PrintAreaBox {
-  return {
-    left: '26%',
-    top: '26%',
-    width: '44%',
-    height: '52%',
-  };
+function toPercent(value: number): string {
+  return `${value}%`;
 }
 
 function percentToDecimal(value: string): number {
@@ -69,16 +68,36 @@ export default function FabricDesignerCanvas({
   const stageRef = useRef<HTMLDivElement | null>(null);
   const canvasElementRef = useRef<HTMLCanvasElement | null>(null);
   const fabricCanvasRef = useRef<Canvas | null>(null);
+  const attachCanvasRef = useRef(attachCanvas);
+  const detachCanvasRef = useRef(detachCanvas);
+  const initializeWorkspaceRef = useRef(initializeWorkspace);
+
+  useEffect(() => {
+    attachCanvasRef.current = attachCanvas;
+    detachCanvasRef.current = detachCanvas;
+    initializeWorkspaceRef.current = initializeWorkspace;
+  }, [attachCanvas, detachCanvas, initializeWorkspace]);
 
   const [stageSize, setStageSize] = useState(760);
 
   useEffect(() => {
     const calculateStageSize = () => {
-      const availableWidth = window.innerWidth - 500;
-      const availableHeight = window.innerHeight - 250;
-      const nextSize = Math.min(availableWidth, availableHeight, 860);
+      const isMobile = window.innerWidth < 768;
 
-      return Math.max(320, nextSize > 0 ? nextSize : 320);
+      const availableWidth = isMobile
+        ? window.innerWidth - 32
+        : window.innerWidth - 500;
+
+      const availableHeight = isMobile
+        ? window.innerHeight - 220
+        : window.innerHeight - 250;
+
+      const maxStageSize = isMobile ? 520 : 860;
+      const minStageSize = isMobile ? 280 : 320;
+
+      const nextSize = Math.min(availableWidth, availableHeight, maxStageSize);
+
+      return Math.max(minStageSize, nextSize > 0 ? nextSize : minStageSize);
     };
 
     const applyResizeScale = () => {
@@ -107,35 +126,35 @@ export default function FabricDesignerCanvas({
     };
   }, []);
 
-  const printArea = useMemo(() => getTShirtPrintArea(), []);
+  const resolvedPrintArea = resolvePrintArea({
+    canvas_width: template.canvasWidth,
+    canvas_height: template.canvasHeight,
+    background_image: template.backgroundImage,
+    print_area: template.printArea,
+  });
 
-  const printAreaWidthPx = useMemo(
-    () => stageSize * percentToDecimal(printArea.width),
-    [printArea.width, stageSize],
-  );
+  const printArea: PrintAreaBox = {
+    left: toPercent(resolvedPrintArea.left),
+    top: toPercent(resolvedPrintArea.top),
+    width: toPercent(resolvedPrintArea.width),
+    height: toPercent(resolvedPrintArea.height),
+  };
 
-  const printAreaHeightPx = useMemo(
-    () => stageSize * percentToDecimal(printArea.height),
-    [printArea.height, stageSize],
-  );
+  const printAreaWidthPx = stageSize * percentToDecimal(printArea.width);
 
-  const canvasScale = useMemo(() => {
+  const printAreaHeightPx = stageSize * percentToDecimal(printArea.height);
+
+  const canvasScale = (() => {
     const widthScale = printAreaWidthPx / template.canvasWidth;
     const heightScale = printAreaHeightPx / template.canvasHeight;
     const nextScale = Math.min(widthScale, heightScale);
 
     return nextScale > 0 ? nextScale : 1;
-  }, [printAreaHeightPx, printAreaWidthPx, template.canvasHeight, template.canvasWidth]);
+  })();
 
-  const scaledCanvasWidth = useMemo(
-    () => Math.round(template.canvasWidth * canvasScale),
-    [template.canvasWidth, canvasScale],
-  );
+  const scaledCanvasWidth = Math.round(template.canvasWidth * canvasScale);
 
-  const scaledCanvasHeight = useMemo(
-    () => Math.round(template.canvasHeight * canvasScale),
-    [template.canvasHeight, canvasScale],
-  );
+  const scaledCanvasHeight = Math.round(template.canvasHeight * canvasScale);
 
   useEffect(() => {
     const element = canvasElementRef.current;
@@ -167,16 +186,14 @@ export default function FabricDesignerCanvas({
     }
 
     fabricCanvasRef.current = canvas;
-    attachCanvas(canvas);
+    attachCanvasRef.current(canvas);
 
     return () => {
-      detachCanvas();
+      detachCanvasRef.current();
       canvas.dispose();
       fabricCanvasRef.current = null;
     };
   }, [
-    attachCanvas,
-    detachCanvas,
     template.canvasHeight,
     template.canvasWidth,
     scaledCanvasWidth,
@@ -188,19 +205,17 @@ export default function FabricDesignerCanvas({
       return;
     }
 
-    const zoom = scaledCanvasWidth / template.canvasWidth;
-
-    initializeWorkspace(initialDesignJson, zoom).catch((error) => {
+    initializeWorkspaceRef.current(initialDesignJson).catch((error) => {
       console.error('Failed to initialize Fabric workspace:', error);
     });
-  }, [initializeWorkspace, initialDesignJson, scaledCanvasWidth, template.canvasWidth]);
+  }, [initialDesignJson]);
 
   const showMockup = Boolean(mockupImageUrl);
 
   return (
     <div
       ref={stageRef}
-      className="relative flex h-full w-full items-center justify-center overflow-auto p-4"
+      className="relative flex h-full w-full items-center justify-center overflow-auto p-2 sm:p-3 md:p-4"
     >
       <div
         style={{
@@ -213,7 +228,7 @@ export default function FabricDesignerCanvas({
         }}
       >
         <div
-          className="relative rounded-2xl border border-gray-200 bg-linear-to-b from-gray-50 to-white shadow-sm"
+          className="relative rounded-xl border border-gray-200 bg-linear-to-b from-gray-50 to-white shadow-sm md:rounded-2xl"
         style={{
           width: `${stageSize}px`,
           height: `${stageSize}px`,
@@ -268,22 +283,22 @@ export default function FabricDesignerCanvas({
       </div>
 
       {activeObjectType === 'image' && (
-        <div className="absolute left-6 top-1/2 flex -translate-y-1/2 flex-col items-center gap-1 rounded-full border border-gray-200 bg-white px-1.5 py-2 shadow-md">
+        <div className="absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1.5 shadow-md md:left-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:flex-col md:px-1.5 md:py-2">
           <button
             type="button"
             onClick={onDuplicate}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 md:h-7 md:w-7"
             title="Duplicate"
           >
             <Copy className="h-4 w-4" />
           </button>
 
-          <div className="h-px w-4 bg-gray-200" />
+          <div className="h-4 w-px bg-gray-200 md:h-px md:w-4" />
 
           <button
             type="button"
             onClick={onFlipH}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 md:h-7 md:w-7"
             title="Flip horizontal"
           >
             <FlipHorizontal2 className="h-4 w-4" />
@@ -292,18 +307,18 @@ export default function FabricDesignerCanvas({
           <button
             type="button"
             onClick={onFlipV}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 md:h-7 md:w-7"
             title="Flip vertical"
           >
             <FlipVertical2 className="h-4 w-4" />
           </button>
 
-          <div className="h-px w-4 bg-gray-200" />
+          <div className="h-4 w-px bg-gray-200 md:h-px md:w-4" />
 
           <button
             type="button"
             onClick={onScaleToFill}
-            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 md:h-7 md:w-7"
             title="Scale to fill print area"
           >
             <Maximize2 className="h-3.5 w-3.5" />
@@ -311,12 +326,12 @@ export default function FabricDesignerCanvas({
         </div>
       )}
 
-      <div className="absolute bottom-6 right-6 flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1.5 shadow-md">
+      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-1.5 shadow-md md:bottom-6 md:left-auto md:right-6 md:translate-x-0">
         <button
           type="button"
           onClick={onZoomOut}
           disabled={zoomLevel <= 1}
-          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 md:h-7 md:w-7"
           title="Zoom out"
         >
           <ZoomOut className="h-4 w-4" />
@@ -325,7 +340,7 @@ export default function FabricDesignerCanvas({
         <button
           type="button"
           onClick={onResetZoom}
-          className="min-w-12 cursor-pointer px-1 text-center text-xs font-medium text-gray-700 transition hover:text-gray-900"
+          className="min-w-14 cursor-pointer px-1.5 text-center text-xs font-medium text-gray-700 transition hover:text-gray-900 md:min-w-12 md:px-1"
           title="Reset zoom"
         >
           {Math.round(zoomLevel * 100)}%
@@ -335,7 +350,7 @@ export default function FabricDesignerCanvas({
           type="button"
           onClick={onZoomIn}
           disabled={zoomLevel >= 3.0}
-          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 md:h-7 md:w-7"
           title="Zoom in"
         >
           <ZoomIn className="h-4 w-4" />
@@ -346,7 +361,7 @@ export default function FabricDesignerCanvas({
         <button
           type="button"
           onClick={onResetZoom}
-          className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100"
+          className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-100 md:h-7 md:w-7"
           title="Fit to screen"
         >
           <Maximize className="h-3.5 w-3.5" />

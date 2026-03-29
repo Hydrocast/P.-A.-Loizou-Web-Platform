@@ -29,11 +29,15 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
         
         {{-- Fonts --}}
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+        <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-400-normal.woff2">
+        <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.bunny.net/instrument-sans/files/instrument-sans-latin-600-normal.woff2">
+        <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600&display=swap" rel="stylesheet" />
+
+        <link rel="preload" as="image" href="{{ Vite::asset('resources/js/assets/logo.webp') }}" fetchpriority="high">
 
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', 'resources/css/app.css']) {{-- FRIEND'S CSS --}}
+        @vite(['resources/js/app.tsx', 'resources/css/app.css'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

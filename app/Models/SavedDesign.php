@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
  * Represents a customer-saved design snapshot.
@@ -18,25 +18,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * preview_image_reference stores the cloud URL of a PNG thumbnail displayed
  * in the My Designs grid and copied to cart items when added to cart.
  *
+ * print_file_reference stores the print-ready image reference generated at
+ * save time so the saved design can preserve a staff production asset when
+ * it is later added to cart and submitted as part of an order.
+ *
  * Saved designs are retained for the lifetime of the customer account and
  * are removed when the account is deleted.
  *
- * @property int         $design_id
- * @property string      $design_name
- * @property int         $customer_id
- * @property int         $product_id
- * @property string      $design_data
+ * @property int $design_id
+ * @property string $design_name
+ * @property int $customer_id
+ * @property int $product_id
+ * @property string $design_data
  * @property string|null $preview_image_reference
- * @property string      $date_created
+ * @property string|null $print_file_reference
+ * @property string $date_created
  */
 class SavedDesign extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'saved_designs';
+
     protected $primaryKey = 'design_id';
+
     protected $keyType = 'int';
+
     public $incrementing = true;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -45,6 +54,7 @@ class SavedDesign extends Model
         'product_id',
         'design_data',
         'preview_image_reference',
+        'print_file_reference',
         'date_created',
     ];
 

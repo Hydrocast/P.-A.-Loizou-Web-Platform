@@ -135,6 +135,7 @@ class CheckoutService
                     'line_subtotal' => $cartItem->resolved_line_subtotal,
                     'design_snapshot' => $cartItem->design_snapshot,
                     'preview_image_reference' => $cartItem->preview_image_reference,
+                    'print_file_reference' => $cartItem->print_file_reference,
                 ]);
             }
 

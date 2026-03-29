@@ -144,20 +144,21 @@ class ProductService
             ]);
         }
 
-        $term = '%' . $query . '%';
+        $term = '%'.$query.'%';
 
         $standard = StandardProduct::where('visibility_status', ProductVisibilityStatus::Active)
             ->where(function ($q) use ($term) {
                 $q->where('product_name', 'like', $term)
-                  ->orWhere('description', 'like', $term);
+                    ->orWhere('description', 'like', $term);
             })
             ->get();
 
         $customizable = CustomizablePrintProduct::where('visibility_status', ProductVisibilityStatus::Active)
             ->where(function ($q) use ($term) {
                 $q->where('product_name', 'like', $term)
-                  ->orWhere('description', 'like', $term);
+                    ->orWhere('description', 'like', $term);
             })
+            ->orderBy('product_id')
             ->get();
 
         return $customizable->concat($standard);
@@ -173,9 +174,9 @@ class ProductService
      * - Standard products appear after customizable products.
      * - Price sort applies within the standard product group only.
      *
-     * @param int|null    $categoryId   Filter to a specific category (standard only)
-     * @param string|null $productType  'standard', 'customizable', or null for both
-     * @param string|null $sortOrder    'asc' or 'desc' for price sort
+     * @param  int|null  $categoryId  Filter to a specific category (standard only)
+     * @param  string|null  $productType  'standard', 'customizable', or null for both
+     * @param  string|null  $sortOrder  'asc' or 'desc' for price sort
      */
     public function filterProducts(?int $categoryId, ?string $productType, ?string $sortOrder): Collection
     {
@@ -196,7 +197,9 @@ class ProductService
         }
 
         if ($productType === 'customizable') {
-            return CustomizablePrintProduct::where('visibility_status', ProductVisibilityStatus::Active)->get();
+            return CustomizablePrintProduct::where('visibility_status', ProductVisibilityStatus::Active)
+                ->orderBy('product_id')
+                ->get();
         }
 
         $standardProducts = $standardQuery->get();
@@ -206,6 +209,7 @@ class ProductService
         }
 
         $customizableProducts = CustomizablePrintProduct::where('visibility_status', ProductVisibilityStatus::Active)
+            ->orderBy('product_id')
             ->get();
 
         return $customizableProducts->concat($standardProducts);
@@ -219,6 +223,7 @@ class ProductService
     public function getActiveProduct(int $productId, string $productType): StandardProduct|CustomizablePrintProduct|null
     {
         $product = $this->findProduct($productId, $productType);
+
         return $product?->isActive() ? $product : null;
     }
 
@@ -344,7 +349,7 @@ class ProductService
 
         if ($price > self::MAX_PRICE) {
             throw ValidationException::withMessages([
-                'display_price' => 'Price cannot exceed ' . number_format(self::MAX_PRICE, 2) . '.',
+                'display_price' => 'Price cannot exceed '.number_format(self::MAX_PRICE, 2).'.',
             ]);
         }
     }

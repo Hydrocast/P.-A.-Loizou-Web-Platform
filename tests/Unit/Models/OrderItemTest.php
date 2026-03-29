@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Models;
 
-use PHPUnit\Framework\Attributes\Test;
-use App\Models\CustomizablePrintProduct;
 use App\Models\CustomerOrder;
+use App\Models\CustomizablePrintProduct;
 use App\Models\OrderItem;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -28,7 +28,7 @@ class OrderItemTest extends TestCase
     /** Model uses the order_items table. */
     public function model_uses_order_items_table(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertSame('order_items', $item->getTable());
     }
@@ -37,7 +37,7 @@ class OrderItemTest extends TestCase
     /** Primary key is order_item_id. */
     public function primary_key_is_order_item_id(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertSame('order_item_id', $item->getKeyName());
     }
@@ -46,7 +46,7 @@ class OrderItemTest extends TestCase
     /** Primary key type is integer. */
     public function primary_key_type_is_integer(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertSame('int', $item->getKeyType());
     }
@@ -55,7 +55,7 @@ class OrderItemTest extends TestCase
     /** Primary key is auto-incrementing. */
     public function primary_key_is_auto_incrementing(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertTrue($item->incrementing);
     }
@@ -64,7 +64,7 @@ class OrderItemTest extends TestCase
     /** Timestamps are disabled. */
     public function timestamps_are_disabled(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertFalse($item->timestamps);
     }
@@ -73,7 +73,7 @@ class OrderItemTest extends TestCase
     /** Fillable array contains expected fields. */
     public function fillable_contains_expected_fields(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
         $fillable = $item->getFillable();
 
         $this->assertContains('order_id', $fillable);
@@ -84,13 +84,14 @@ class OrderItemTest extends TestCase
         $this->assertContains('line_subtotal', $fillable);
         $this->assertContains('design_snapshot', $fillable);
         $this->assertContains('preview_image_reference', $fillable);
+        $this->assertContains('print_file_reference', $fillable);
     }
 
     #[Test]
     /** unit_price is cast to decimal with 2 places. */
     public function unit_price_cast_is_configured(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertSame('decimal:2', $item->getCasts()['unit_price']);
     }
@@ -99,7 +100,7 @@ class OrderItemTest extends TestCase
     /** line_subtotal is cast to decimal with 2 places. */
     public function line_subtotal_cast_is_configured(): void
     {
-        $item = new OrderItem();
+        $item = new OrderItem;
 
         $this->assertSame('decimal:2', $item->getCasts()['line_subtotal']);
     }
@@ -112,7 +113,7 @@ class OrderItemTest extends TestCase
     /** order() returns a BelongsTo relation. */
     public function order_returns_belongs_to_relation(): void
     {
-        $relation = (new OrderItem())->order();
+        $relation = (new OrderItem)->order();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -121,7 +122,7 @@ class OrderItemTest extends TestCase
     /** order() uses order_id as foreign key. */
     public function order_uses_order_id_as_foreign_key(): void
     {
-        $relation = (new OrderItem())->order();
+        $relation = (new OrderItem)->order();
 
         $this->assertSame('order_id', $relation->getForeignKeyName());
     }
@@ -130,7 +131,7 @@ class OrderItemTest extends TestCase
     /** order() relates to CustomerOrder model. */
     public function order_relates_to_customer_order_model(): void
     {
-        $relation = (new OrderItem())->order();
+        $relation = (new OrderItem)->order();
 
         $this->assertInstanceOf(CustomerOrder::class, $relation->getRelated());
     }
@@ -143,7 +144,7 @@ class OrderItemTest extends TestCase
     /** product() returns a BelongsTo relation. */
     public function product_returns_belongs_to_relation(): void
     {
-        $relation = (new OrderItem())->product();
+        $relation = (new OrderItem)->product();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -152,7 +153,7 @@ class OrderItemTest extends TestCase
     /** product() uses product_id as foreign key. */
     public function product_uses_product_id_as_foreign_key(): void
     {
-        $relation = (new OrderItem())->product();
+        $relation = (new OrderItem)->product();
 
         $this->assertSame('product_id', $relation->getForeignKeyName());
     }
@@ -161,7 +162,7 @@ class OrderItemTest extends TestCase
     /** product() relates to CustomizablePrintProduct model. */
     public function product_relates_to_customizable_print_product_model(): void
     {
-        $relation = (new OrderItem())->product();
+        $relation = (new OrderItem)->product();
 
         $this->assertInstanceOf(CustomizablePrintProduct::class, $relation->getRelated());
     }

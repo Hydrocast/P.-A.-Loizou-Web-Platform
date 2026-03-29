@@ -13,13 +13,13 @@ import {
   Type,
   Undo,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import FabricDesignerCanvas from '@/components/customer/design/FabricDesignerCanvas';
-import { useFabricDesigner } from '@/hooks/useFabricDesigner';
 import type { ActiveTextStyle } from '@/hooks/useFabricDesigner';
+import { MAX_IMAGES, useFabricDesigner } from '@/hooks/useFabricDesigner';
 import { extractCanvasJson } from '@/lib/design/document';
-import { normalizeTemplateConfig } from '@/lib/design/template';
+import { normalizeTemplateConfig, resolvePrintArea } from '@/lib/design/template';
 import type { WorkspacePageProps } from '@/types/design';
 
 type FlashProps = {
@@ -106,13 +106,12 @@ export default function DesignWorkspace() {
     selectedShirtColorId: initialSelectedShirtColorId,
     workspaceOptions = {},
     selectedPrintSide: initialSelectedPrintSide,
+    selectedSize: initialSelectedSize,
     flash,
   } = usePage<WorkspacePageProps & { flash?: FlashProps }>().props;
 
-  const normalizedTemplate = useMemo(
-    () => normalizeTemplateConfig(templateConfig),
-    [templateConfig],
-  );
+  const normalizedTemplate = normalizeTemplateConfig(templateConfig);
+  const resolvedPrintArea = resolvePrintArea(templateConfig);
 
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const messageTimeoutRef = useRef<number | null>(null);
@@ -140,6 +139,7 @@ export default function DesignWorkspace() {
     clearDesign,
     exportDesignJson,
     exportPreviewDataUrl,
+    exportPrintDataUrl,
     hasDesignElements,
     duplicateActiveObject,
     flipActiveObjectHorizontal,
@@ -158,9 +158,11 @@ export default function DesignWorkspace() {
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [designName, setDesignName] = useState(initialDesign?.design_name ?? '');
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [isSavingDesign, setIsSavingDesign] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [selectedImageName, setSelectedImageName] = useState('');
+  const [showImageLimitDialog, setShowImageLimitDialog] = useState(false);
   const [textStyle, setTextStyle] = useState<ActiveTextStyle>(DEFAULT_TEXT_STYLE);
   const [selectedShirtColorId, setSelectedShirtColorId] = useState(
     initialSelectedShirtColorId ?? shirtColorOptions[0]?.id ?? '',
@@ -168,14 +170,17 @@ export default function DesignWorkspace() {
   const [selectedPrintSideValue, setSelectedPrintSideValue] = useState(
     initialSelectedPrintSide?.value ?? '',
   );
+  const [selectedSizeValue, setSelectedSizeValue] = useState(
+    initialSelectedSize?.value ?? '',
+  );
 
-  const selectedShirtColor = useMemo(() => {
+  const selectedShirtColor = (() => {
     return (
       shirtColorOptions.find((option) => option.id === selectedShirtColorId) ??
       shirtColorOptions[0] ??
       null
     );
-  }, [selectedShirtColorId, shirtColorOptions]);
+  })();
 
   const printSideOptions =
     workspaceOptions.print_sides?.enabled && Array.isArray(workspaceOptions.print_sides?.choices)
@@ -184,6 +189,14 @@ export default function DesignWorkspace() {
 
   const selectedPrintSide =
     printSideOptions.find((option) => option.value === selectedPrintSideValue) ?? null;
+
+  const selectedSize =
+    selectedSizeValue.trim() !== ''
+      ? {
+          value: selectedSizeValue,
+          label: initialSelectedSize?.label ?? selectedSizeValue,
+        }
+      : null;
 
   const isEditingSelectedText =
     selectedTool === 'text' &&
@@ -194,14 +207,6 @@ export default function DesignWorkspace() {
   useEffect(() => {
     setDesignName(initialDesign?.design_name ?? '');
   }, [initialDesign?.design_name]);
-
-  useEffect(() => {
-    if (flash?.success) {
-      showMessage(flash.success);
-    } else if (flash?.error) {
-      showMessage(flash.error);
-    }
-  }, [flash?.success, flash?.error]);
 
   useEffect(() => {
     if (selectedTool === 'text' && activeTextStyle) {
@@ -220,6 +225,10 @@ export default function DesignWorkspace() {
   }, [initialSelectedPrintSide?.value]);
 
   useEffect(() => {
+    setSelectedSizeValue(initialSelectedSize?.value ?? '');
+  }, [initialSelectedSize?.value]);
+
+  useEffect(() => {
     return () => {
       if (messageTimeoutRef.current !== null) {
         window.clearTimeout(messageTimeoutRef.current);
@@ -227,8 +236,9 @@ export default function DesignWorkspace() {
     };
   }, []);
 
-  const showMessage = (msg: string) => {
+  const showMessage = (msg: string, type: 'success' | 'error' = 'error') => {
     setMessage(msg);
+    setMessageType(type);
 
     if (messageTimeoutRef.current !== null) {
       window.clearTimeout(messageTimeoutRef.current);
@@ -240,8 +250,35 @@ export default function DesignWorkspace() {
     }, 3500);
   };
 
-  const compositePreviewWithMockup = useCallback(
-    async (mockupUrl: string): Promise<string | null> => {
+  useEffect(() => {
+    if (flash?.success) {
+      setMessage(flash.success);
+      setMessageType('success');
+
+      if (messageTimeoutRef.current !== null) {
+        window.clearTimeout(messageTimeoutRef.current);
+      }
+
+      messageTimeoutRef.current = window.setTimeout(() => {
+        setMessage('');
+        messageTimeoutRef.current = null;
+      }, 3500);
+    } else if (flash?.error) {
+      setMessage(flash.error);
+      setMessageType('error');
+
+      if (messageTimeoutRef.current !== null) {
+        window.clearTimeout(messageTimeoutRef.current);
+      }
+
+      messageTimeoutRef.current = window.setTimeout(() => {
+        setMessage('');
+        messageTimeoutRef.current = null;
+      }, 3500);
+    }
+  }, [flash?.success, flash?.error]);
+
+  const compositePreviewWithMockup = async (mockupUrl: string): Promise<string | null> => {
       const designDataUrl = exportPreviewDataUrl();
       if (!designDataUrl) {
         return null;
@@ -276,11 +313,12 @@ export default function DesignWorkspace() {
         ctx.drawImage(mockupImg, 0, 0, size, size);
       }
 
-      // These percentages must stay in sync with getTShirtPrintArea() in FabricDesignerCanvas.tsx
-      const printLeft = 0.28 * size;
-      const printTop = 0.26 * size;
-      const printW = 0.44 * size;
-      const printH = 0.52 * size;
+      // These percentages must stay in sync with the resolved print area
+      // used by FabricDesignerCanvas.tsx.
+      const printLeft = (resolvedPrintArea.left / 100) * size;
+      const printTop = (resolvedPrintArea.top / 100) * size;
+      const printW = (resolvedPrintArea.width / 100) * size;
+      const printH = (resolvedPrintArea.height / 100) * size;
 
       const designImg = await loadImg(designDataUrl);
 
@@ -296,10 +334,8 @@ export default function DesignWorkspace() {
         ctx.drawImage(designImg, dx, dy, dw, dh);
       }
 
-      return offscreen.toDataURL('image/png', 0.85);
-    },
-    [exportPreviewDataUrl, normalizedTemplate],
-  );
+      return offscreen.toDataURL('image/jpeg', 0.85);
+    };
 
   const handleToolSelect = (
     tool: 'text' | 'image' | 'clipart' | 'product',
@@ -375,7 +411,7 @@ export default function DesignWorkspace() {
         text: '',
       }));
     } catch (error) {
-      showMessage(error instanceof Error ? error.message : 'Failed to add text.');
+      showMessage(error instanceof Error ? error.message : 'Failed to add text.', 'error');
     }
   };
 
@@ -388,9 +424,15 @@ export default function DesignWorkspace() {
     try {
       await addImageFromFile(file);
       setSelectedTool(null);
-      showMessage('Image element added');
     } catch (error) {
-      showMessage(error instanceof Error ? error.message : 'Failed to add image.');
+      if (
+        error instanceof Error &&
+        error.message.includes(`up to ${MAX_IMAGES} images`)
+      ) {
+        setShowImageLimitDialog(true);
+      }
+
+      showMessage(error instanceof Error ? error.message : 'Failed to add image.', 'error');
     } finally {
       if (imageInputRef.current) {
         imageInputRef.current.value = '';
@@ -402,9 +444,30 @@ export default function DesignWorkspace() {
     try {
       await addClipart(imageReference);
       setSelectedTool(null);
-      showMessage('Clipart element added');
     } catch (error) {
-      showMessage(error instanceof Error ? error.message : 'Failed to add clipart.');
+      if (
+        error instanceof Error &&
+        error.message.includes(`up to ${MAX_IMAGES} images`)
+      ) {
+        setShowImageLimitDialog(true);
+      }
+
+      showMessage(error instanceof Error ? error.message : 'Failed to add clipart.', 'error');
+    }
+  };
+
+  const duplicateActiveObjectHandler = () => {
+    try {
+      duplicateActiveObject();
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes(`up to ${MAX_IMAGES} images`)
+      ) {
+        setShowImageLimitDialog(true);
+      }
+
+      showMessage(error instanceof Error ? error.message : 'Failed to duplicate element.', 'error');
     }
   };
 
@@ -412,13 +475,13 @@ export default function DesignWorkspace() {
     try {
       await undo();
     } catch {
-      showMessage('Failed to undo the last action.');
+      showMessage('Failed to undo the last action.', 'error');
     }
   };
 
   const requestClearDesign = () => {
     if (!hasDesignElements()) {
-      showMessage('There are no design elements to clear.');
+      showMessage('There are no design elements to clear.', 'error');
       return;
     }
 
@@ -429,17 +492,17 @@ export default function DesignWorkspace() {
     clearDesign();
     setSelectedImageName('');
     setShowClearDialog(false);
-    showMessage('Design cleared');
+    showMessage('Design cleared', 'success');
   };
 
   const saveDesign = async () => {
     if (!designName.trim() || designName.length > 100) {
-      showMessage('Please enter a valid design name (1-100 characters).');
+      showMessage('Please enter a valid design name (1-100 characters).', 'error');
       return;
     }
 
     if (!hasDesignElements()) {
-      showMessage('Please add design elements before saving.');
+      showMessage('Please add design elements before saving.', 'error');
       return;
     }
 
@@ -454,6 +517,7 @@ export default function DesignWorkspace() {
       design_name: designName.trim(),
       design_data: exportDesignJson(),
       preview_image_reference: preview,
+      print_file_reference: exportPrintDataUrl(),
       customization_options: {
         shirt_color: selectedShirtColor
           ? {
@@ -467,18 +531,21 @@ export default function DesignWorkspace() {
               label: selectedPrintSide.label,
             }
           : null,
+        size: selectedSize
+          ? {
+              value: selectedSize.value,
+              label: selectedSize.label,
+            }
+          : null,
       },
     };
 
     router.post('/design/save', payload, {
       preserveScroll: true,
+      preserveState: true,
       onSuccess: () => {
         setShowSaveDialog(false);
-        showMessage('Design saved successfully.');
-
-        window.setTimeout(() => {
-          router.visit('/account/designs');
-        }, 500);
+        showMessage('Design saved successfully.', 'success');
       },
       onError: (errors) => {
         const firstError =
@@ -488,7 +555,8 @@ export default function DesignWorkspace() {
           Object.values(errors)[0] ||
           'Failed to save design.';
 
-        showMessage(String(firstError));
+        setShowSaveDialog(false);
+        showMessage(String(firstError), 'error');
       },
       onFinish: () => {
         setIsSavingDesign(false);
@@ -498,7 +566,7 @@ export default function DesignWorkspace() {
 
   const addToCartHandler = async () => {
     if (!hasDesignElements()) {
-      showMessage('Please add design elements first.');
+      showMessage('Please add design elements first.', 'error');
       return;
     }
 
@@ -513,6 +581,7 @@ export default function DesignWorkspace() {
       quantity,
       design_data: exportDesignJson(),
       preview_image_reference: preview,
+      print_file_reference: exportPrintDataUrl(),
       customization_options: {
         shirt_color: selectedShirtColor
           ? {
@@ -526,6 +595,12 @@ export default function DesignWorkspace() {
               label: selectedPrintSide.label,
             }
           : null,
+        size: selectedSize
+          ? {
+              value: selectedSize.value,
+              label: selectedSize.label,
+            }
+          : null,
       },
     };
 
@@ -534,7 +609,7 @@ export default function DesignWorkspace() {
         router.visit('/cart');
       },
       onError: () => {
-        showMessage('Failed to add to cart.');
+        showMessage('Failed to add to cart.', 'error');
       },
       onFinish: () => {
         setIsAddingToCart(false);
@@ -546,33 +621,43 @@ export default function DesignWorkspace() {
     <>
       <Head title={`Design: ${product.product_name}`} />
 
-      <div className="flex h-screen flex-col overflow-hidden bg-gray-100">
-        <div className="flex shrink-0 items-center justify-between bg-white px-6 py-4 shadow-sm">
-          <div>
-            <h1 className="text-xl font-bold">Design: {product.product_name}</h1>
-            <p className="text-sm text-gray-600">Create your custom design</p>
-          </div>
+      <div className="flex min-h-screen flex-col bg-gray-100 md:h-screen md:overflow-hidden">
+        <div className="shrink-0 bg-white px-4 py-4 shadow-sm sm:px-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-lg font-bold sm:text-xl wrap-break-word">
+                Design: {product.product_name}
+              </h1>
+              <p className="text-sm text-gray-600">Create your custom design</p>
+            </div>
 
-          <button
-            onClick={() => router.visit(`/product/customizable/${product.product_id}`)}
-            className="cursor-pointer text-blue-600 hover:underline"
-          >
-            Exit Designer
-          </button>
+            <button
+              onClick={() => router.visit(`/product/customizable/${product.product_id}`)}
+              className="inline-flex w-full cursor-pointer items-center justify-center rounded-md border border-blue-200 px-4 py-2 text-blue-600 transition hover:bg-blue-50 md:w-auto md:border-0 md:px-0 md:py-0 md:hover:bg-transparent md:hover:underline"
+            >
+              Exit Designer
+            </button>
+          </div>
         </div>
 
         {message && (
-          <div className="bg-green-100 px-6 py-2 text-center text-green-800">
+          <div
+            className={`px-4 py-2 text-center text-sm sm:px-6 ${
+              messageType === 'success'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
+            }`}
+          >
             {message}
           </div>
         )}
 
-        <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="w-72 shrink-0 overflow-hidden bg-white shadow-md">
-            <div className="h-full overflow-y-auto p-4">
+        <div className="flex flex-1 flex-col md:min-h-0 md:flex-row md:overflow-hidden">
+          <div className="shrink-0 bg-white shadow-md md:w-72 md:overflow-hidden">
+            <div className="overflow-y-auto p-4 md:h-full">
               <h2 className="mb-3 font-semibold">Design Tools</h2>
 
-              <div className="mb-4 space-y-1.5">
+              <div className="mb-4 grid grid-cols-2 gap-2 md:block md:space-y-1.5">
                 <button
                   onClick={() => handleToolSelect('product')}
                   className={`w-full cursor-pointer rounded px-3 py-2 text-left text-sm ${
@@ -581,7 +666,7 @@ export default function DesignWorkspace() {
                 >
                   <div className="flex items-center">
                     <PaintBucket className="mr-2 h-4 w-4" />
-                    T-Shirt Options
+                    Colour Options
                   </div>
                 </button>
 
@@ -625,16 +710,16 @@ export default function DesignWorkspace() {
               {selectedTool === 'product' && (
                 <div className="border-t pt-3">
                   <div className="mb-2">
-                    <h3 className="text-sm font-medium">T-Shirt Color</h3>
+                    <h3 className="text-sm font-medium">Colour Options</h3>
                     <p className="mt-1 text-[11px] leading-4 text-gray-500">
-                      Choose a shirt colour for the workspace preview and saved design preview.
+                      Choose a colour for the workspace preview and saved design preview.
                     </p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
                       <p className="text-xs font-medium text-gray-700">
-                        Selected Color: {selectedShirtColor?.label ?? '-'}
+                        Selected Colour: {selectedShirtColor?.label ?? '-'}
                       </p>
 
                       <div className="mt-3 grid grid-cols-4 gap-2">
@@ -646,14 +731,14 @@ export default function DesignWorkspace() {
                               key={option.id}
                               type="button"
                               onClick={() => setSelectedShirtColorId(option.id)}
-                              className={`cursor-pointer rounded-xl border p-1.5 text-center transition ${
+                              className={`flex min-h-23 cursor-pointer flex-col rounded-xl border p-1.5 text-center transition ${
                                 isActive
                                   ? 'border-blue-300 bg-blue-50 ring-2 ring-blue-100'
                                   : 'border-gray-300 bg-white hover:bg-gray-50'
                               }`}
                               title={option.label}
                             >
-                              <div className="mb-1 flex h-12 items-center justify-center rounded-lg border border-gray-200 bg-gray-100">
+                              <div className="flex h-14 items-center justify-center rounded-lg border border-gray-200 bg-gray-100">
                                 {option.thumbnailImageUrl ? (
                                   <img
                                     src={option.thumbnailImageUrl}
@@ -668,9 +753,11 @@ export default function DesignWorkspace() {
                                 )}
                               </div>
 
-                              <span className="block truncate text-[10px] font-medium text-gray-700">
-                                {option.label}
-                              </span>
+                              <div className="mt-1 flex min-h-7 items-start justify-center">
+                                <span className="line-clamp-2 block text-[10px] font-medium leading-3 text-gray-700 wrap-break-word">
+                                  {option.label}
+                                </span>
+                              </div>
                             </button>
                           );
                         })}
@@ -740,7 +827,7 @@ export default function DesignWorkspace() {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <label className="mb-1 block text-xs">Style</label>
                         <div className="flex gap-1.5">
@@ -949,7 +1036,7 @@ export default function DesignWorkspace() {
 
                       <div className="min-w-0">
                         <p
-                          className={`truncate text-sm ${
+                          className={`text-sm wrap-break-word ${
                             selectedImageName ? 'text-gray-900' : 'text-gray-500'
                           }`}
                         >
@@ -1036,8 +1123,8 @@ export default function DesignWorkspace() {
             </div>
           </div>
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-8">
-            <div className="flex-1 overflow-hidden rounded-lg bg-white shadow-lg">
+          <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5 md:min-h-0 md:overflow-hidden md:p-8">
+            <div className="min-h-85 flex-1 overflow-hidden rounded-lg bg-white shadow-lg">
               <FabricDesignerCanvas
                 template={normalizedTemplate}
                 initialDesignJson={extractCanvasJson(initialDesign?.design_data ?? null)}
@@ -1050,15 +1137,15 @@ export default function DesignWorkspace() {
                 detachCanvas={detachCanvas}
                 initializeWorkspace={initializeWorkspace}
                 activeObjectType={activeObjectType}
-                onDuplicate={duplicateActiveObject}
+                onDuplicate={duplicateActiveObjectHandler}
                 onFlipH={flipActiveObjectHorizontal}
                 onFlipV={flipActiveObjectVertical}
                 onScaleToFill={scaleActiveObjectToFill}
               />
             </div>
 
-            <div className="mt-4 flex shrink-0 items-end justify-between gap-4 rounded-lg bg-white p-4 shadow-md">
-              <div className="flex flex-wrap items-end gap-4 sm:flex-nowrap">
+            <div className="mt-4 flex shrink-0 flex-col gap-4 rounded-lg bg-white p-4 shadow-md md:flex-row md:items-end md:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end md:flex-nowrap">
                 <div className="flex flex-col justify-end">
                   <label className="mb-1 block text-sm font-medium text-gray-700">Quantity</label>
                   <input
@@ -1069,7 +1156,7 @@ export default function DesignWorkspace() {
                     }
                     min={1}
                     max={99}
-                    className="h-10 w-20 rounded-md border px-3 text-sm"
+                    className="h-10 w-full rounded-md border px-3 text-sm sm:w-20"
                   />
                 </div>
 
@@ -1082,7 +1169,7 @@ export default function DesignWorkspace() {
                     <select
                       value={selectedPrintSideValue}
                       onChange={(e) => setSelectedPrintSideValue(e.target.value)}
-                      className="h-10 min-w-60 cursor-pointer rounded-md border px-3 text-sm"
+                      className="h-10 w-full cursor-pointer rounded-md border px-3 text-sm sm:min-w-60"
                     >
                       {printSideOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -1097,7 +1184,7 @@ export default function DesignWorkspace() {
               <button
                 onClick={addToCartHandler}
                 disabled={isAddingToCart || !isReady}
-                className="cursor-pointer rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full cursor-pointer rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
               >
                 <div className="flex items-center">
                   <ShoppingCart className="mr-2 h-5 w-5" />
@@ -1127,10 +1214,10 @@ export default function DesignWorkspace() {
                 maxLength={100}
               />
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row">
                 <button
                   onClick={() => setShowSaveDialog(false)}
-                  className="flex-1 cursor-pointer rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  className="w-full cursor-pointer rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:flex-1"
                 >
                   Cancel
                 </button>
@@ -1138,7 +1225,7 @@ export default function DesignWorkspace() {
                 <button
                   onClick={saveDesign}
                   disabled={isSavingDesign}
-                  className="flex-1 cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
                 >
                   {isSavingDesign ? 'Saving...' : 'Save Design'}
                 </button>
@@ -1160,19 +1247,44 @@ export default function DesignWorkspace() {
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
                 <button
                   onClick={() => setShowClearDialog(false)}
-                  className="flex-1 cursor-pointer rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                  className="w-full cursor-pointer rounded-xl border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:flex-1"
                 >
                   Cancel
                 </button>
 
                 <button
                   onClick={confirmClearDesign}
-                  className="flex-1 cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700"
+                  className="w-full cursor-pointer rounded-xl bg-red-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-700 sm:flex-1"
                 >
                   Clear Design
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showImageLimitDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+              <div className="mb-5">
+                <h3 className="text-lg font-semibold text-gray-900">Image Limit Reached</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  You can add up to {MAX_IMAGES} images or clipart items to one design.
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Remove an existing image before adding a new one.
+                </p>
+              </div>
+
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setShowImageLimitDialog(false)}
+                  className="w-full cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 sm:w-auto"
+                >
+                  Got It
                 </button>
               </div>
             </div>

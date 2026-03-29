@@ -44,6 +44,7 @@ class CartService
         int $quantity,
         string $designSnapshot,
         ?string $previewImageReference,
+        ?string $printFileReference,
     ): void {
         $this->validateProduct($productId);
         $this->validateQuantity($quantity);
@@ -56,6 +57,7 @@ class CartService
             'quantity' => $quantity,
             'design_snapshot' => $designSnapshot,
             'preview_image_reference' => $previewImageReference,
+            'print_file_reference' => $printFileReference,
             'date_added' => now(),
         ]);
 
@@ -79,7 +81,7 @@ class CartService
             ]);
         }
 
-        if (!$design->isProductAvailable()) {
+        if (! $design->isProductAvailable()) {
             throw ValidationException::withMessages([
                 'design_id' => 'The product for this design is no longer available for ordering.',
             ]);
@@ -93,6 +95,7 @@ class CartService
             'quantity' => 1,
             'design_snapshot' => $design->design_data,
             'preview_image_reference' => $design->preview_image_reference,
+            'print_file_reference' => $design->print_file_reference,
             'date_added' => now(),
         ]);
 
@@ -186,7 +189,7 @@ class CartService
     {
         $product = CustomizablePrintProduct::find($productId);
 
-        if ($product === null || !$product->isActive()) {
+        if ($product === null || ! $product->isActive()) {
             throw ValidationException::withMessages([
                 'product_id' => 'This product is not available for ordering.',
             ]);
@@ -216,7 +219,7 @@ class CartService
     {
         $item = CartItem::with('cart')
             ->where('cart_item_id', $cartItemId)
-            ->whereHas('cart', fn($q) => $q->where('customer_id', $customerId))
+            ->whereHas('cart', fn ($q) => $q->where('customer_id', $customerId))
             ->first();
 
         if ($item === null) {

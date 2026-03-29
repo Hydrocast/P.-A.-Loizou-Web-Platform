@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\Attributes\Test;
 use App\Enums\ProductVisibilityStatus;
 use App\Models\CustomizablePrintProduct;
 use App\Models\ProductCategory;
@@ -11,6 +10,7 @@ use App\Services\ProductService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -30,7 +30,7 @@ class ProductServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new ProductService();
+        $this->service = new ProductService;
     }
 
     // -------------------------------------------------------------------------
@@ -80,12 +80,31 @@ class ProductServiceTest extends TestCase
     }
 
     #[Test]
+    /** Customizable search results are ordered by product_id ascending. */
+    public function search_products_orders_customizable_results_by_product_id(): void
+    {
+        $first = CustomizablePrintProduct::factory()->create([
+            'product_name' => 'Orderable Custom A',
+            'description' => 'Shared keyword',
+        ]);
+        $second = CustomizablePrintProduct::factory()->create([
+            'product_name' => 'Orderable Custom B',
+            'description' => 'Shared keyword',
+        ]);
+
+        $results = $this->service->searchProducts('Orderable Custom');
+
+        $this->assertSame($first->product_id, $results->first()->product_id);
+        $this->assertSame($second->product_id, $results->last()->product_id);
+    }
+
+    #[Test]
     /** Matches products by description field in addition to name. */
     public function search_products_matches_against_description(): void
     {
         StandardProduct::factory()->create([
             'product_name' => 'Generic Product',
-            'description'  => 'Perfect for weddings',
+            'description' => 'Perfect for weddings',
         ]);
 
         $results = $this->service->searchProducts('weddings');
@@ -184,6 +203,19 @@ class ProductServiceTest extends TestCase
     }
 
     #[Test]
+    /** Customizable filter results are ordered by product_id ascending. */
+    public function filter_products_orders_customizable_results_by_product_id(): void
+    {
+        $first = CustomizablePrintProduct::factory()->create(['product_name' => 'Custom One']);
+        $second = CustomizablePrintProduct::factory()->create(['product_name' => 'Custom Two']);
+
+        $results = $this->service->filterProducts(null, 'customizable', null);
+
+        $this->assertSame($first->product_id, $results->first()->product_id);
+        $this->assertSame($second->product_id, $results->last()->product_id);
+    }
+
+    #[Test]
     /** Inactive products are excluded regardless of filters applied. */
     public function filter_products_excludes_inactive_products(): void
     {
@@ -212,11 +244,11 @@ class ProductServiceTest extends TestCase
     public function filter_products_sorts_standard_products_by_price_ascending(): void
     {
         StandardProduct::factory()->create(['product_name' => 'Expensive', 'display_price' => 100.00]);
-        StandardProduct::factory()->create(['product_name' => 'Cheap',     'display_price' =>   5.00]);
+        StandardProduct::factory()->create(['product_name' => 'Cheap',     'display_price' => 5.00]);
 
         $results = $this->service->filterProducts(null, 'standard', 'asc');
 
-        $this->assertEquals('Cheap',     $results->first()->product_name);
+        $this->assertEquals('Cheap', $results->first()->product_name);
         $this->assertEquals('Expensive', $results->last()->product_name);
     }
 
@@ -224,13 +256,13 @@ class ProductServiceTest extends TestCase
     /** Sorts standard products by price descending. */
     public function filter_products_sorts_standard_products_by_price_descending(): void
     {
-        StandardProduct::factory()->create(['product_name' => 'Cheap',     'display_price' =>   5.00]);
+        StandardProduct::factory()->create(['product_name' => 'Cheap',     'display_price' => 5.00]);
         StandardProduct::factory()->create(['product_name' => 'Expensive', 'display_price' => 100.00]);
 
         $results = $this->service->filterProducts(null, 'standard', 'desc');
 
         $this->assertEquals('Expensive', $results->first()->product_name);
-        $this->assertEquals('Cheap',     $results->last()->product_name);
+        $this->assertEquals('Cheap', $results->last()->product_name);
     }
 
     // -------------------------------------------------------------------------
@@ -242,7 +274,7 @@ class ProductServiceTest extends TestCase
     public function get_active_product_returns_standard_product(): void
     {
         $product = StandardProduct::factory()->create();
-        $result  = $this->service->getActiveProduct($product->product_id, 'standard');
+        $result = $this->service->getActiveProduct($product->product_id, 'standard');
         $this->assertNotNull($result);
         $this->assertEquals($product->product_id, $result->product_id);
     }
@@ -252,7 +284,7 @@ class ProductServiceTest extends TestCase
     public function get_active_product_returns_customizable_product(): void
     {
         $product = CustomizablePrintProduct::factory()->create();
-        $result  = $this->service->getActiveProduct($product->product_id, 'customizable');
+        $result = $this->service->getActiveProduct($product->product_id, 'customizable');
         $this->assertNotNull($result);
         $this->assertEquals($product->product_id, $result->product_id);
     }
@@ -270,7 +302,7 @@ class ProductServiceTest extends TestCase
     public function get_active_product_returns_null_when_product_is_inactive(): void
     {
         $product = StandardProduct::factory()->inactive()->create();
-        $result  = $this->service->getActiveProduct($product->product_id, 'standard');
+        $result = $this->service->getActiveProduct($product->product_id, 'standard');
         $this->assertNull($result);
     }
 
@@ -279,7 +311,7 @@ class ProductServiceTest extends TestCase
     public function get_active_product_returns_null_for_unknown_product_type(): void
     {
         $product = StandardProduct::factory()->create();
-        $result  = $this->service->getActiveProduct($product->product_id, 'invalid_type');
+        $result = $this->service->getActiveProduct($product->product_id, 'invalid_type');
         $this->assertNull($result);
     }
 
@@ -291,7 +323,7 @@ class ProductServiceTest extends TestCase
     /** Persists a standard product with Active status. */
     public function create_standard_product_persists_product_with_active_status(): void
     {
-        $cat     = ProductCategory::factory()->create();
+        $cat = ProductCategory::factory()->create();
         $product = $this->service->createStandardProduct('Test Product', $cat->category_id, 9.99, 'A description', null);
 
         $this->assertDatabaseHas('standard_products', ['product_name' => 'Test Product']);
@@ -344,7 +376,7 @@ class ProductServiceTest extends TestCase
     /** Product name of 51 characters (in-range) is accepted. */
     public function create_standard_product_accepts_name_of_fifty_one_characters(): void
     {
-        $name    = str_repeat('a', 51);
+        $name = str_repeat('a', 51);
         $product = $this->service->createStandardProduct($name, null, 5.00, null, null);
         $this->assertEquals($name, $product->product_name);
     }
@@ -353,7 +385,7 @@ class ProductServiceTest extends TestCase
     /** Product name of 100 characters (maximum) is accepted. */
     public function create_standard_product_accepts_name_of_one_hundred_characters(): void
     {
-        $name    = str_repeat('a', 100);
+        $name = str_repeat('a', 100);
         $product = $this->service->createStandardProduct($name, null, 5.00, null, null);
         $this->assertEquals($name, $product->product_name);
     }
@@ -430,7 +462,7 @@ class ProductServiceTest extends TestCase
     /** Description of 1000 characters (in-range) is accepted. */
     public function create_standard_product_accepts_description_of_one_thousand_characters(): void
     {
-        $desc    = str_repeat('a', 1000);
+        $desc = str_repeat('a', 1000);
         $product = $this->service->createStandardProduct('Product', null, 5.00, $desc, null);
         $this->assertEquals($desc, $product->description);
     }
@@ -439,7 +471,7 @@ class ProductServiceTest extends TestCase
     /** Description of 2000 characters (maximum) is accepted. */
     public function create_standard_product_accepts_description_of_two_thousand_characters(): void
     {
-        $desc    = str_repeat('a', 2000);
+        $desc = str_repeat('a', 2000);
         $product = $this->service->createStandardProduct('Product', null, 5.00, $desc, null);
         $this->assertEquals($desc, $product->description);
     }
@@ -524,7 +556,7 @@ class ProductServiceTest extends TestCase
     public function edit_standard_product_accepts_name_of_fifty_one_characters(): void
     {
         $product = StandardProduct::factory()->create();
-        $name    = str_repeat('a', 51);
+        $name = str_repeat('a', 51);
         $this->service->editStandardProduct($product->product_id, $name, null, 5.00, null, null);
         $product->refresh();
         $this->assertEquals($name, $product->product_name);
@@ -535,7 +567,7 @@ class ProductServiceTest extends TestCase
     public function edit_standard_product_accepts_name_of_one_hundred_characters(): void
     {
         $product = StandardProduct::factory()->create();
-        $name    = str_repeat('a', 100);
+        $name = str_repeat('a', 100);
         $this->service->editStandardProduct($product->product_id, $name, null, 5.00, null, null);
         $product->refresh();
         $this->assertEquals($name, $product->product_name);
@@ -627,7 +659,7 @@ class ProductServiceTest extends TestCase
     public function edit_standard_product_accepts_description_of_one_thousand_characters(): void
     {
         $product = StandardProduct::factory()->create();
-        $desc    = str_repeat('a', 1000);
+        $desc = str_repeat('a', 1000);
         $this->service->editStandardProduct($product->product_id, 'Name', null, 5.00, $desc, null);
         $product->refresh();
         $this->assertEquals($desc, $product->description);
@@ -638,7 +670,7 @@ class ProductServiceTest extends TestCase
     public function edit_standard_product_accepts_description_of_two_thousand_characters(): void
     {
         $product = StandardProduct::factory()->create();
-        $desc    = str_repeat('a', 2000);
+        $desc = str_repeat('a', 2000);
         $this->service->editStandardProduct($product->product_id, 'Name', null, 5.00, $desc, null);
         $product->refresh();
         $this->assertEquals($desc, $product->description);
@@ -724,7 +756,7 @@ class ProductServiceTest extends TestCase
     public function edit_customizable_product_accepts_name_of_fifty_one_characters(): void
     {
         $product = CustomizablePrintProduct::factory()->create();
-        $name    = str_repeat('a', 51);
+        $name = str_repeat('a', 51);
         $this->service->editCustomizableProduct($product->product_id, $name, null, null);
         $product->refresh();
         $this->assertEquals($name, $product->product_name);
@@ -735,7 +767,7 @@ class ProductServiceTest extends TestCase
     public function edit_customizable_product_accepts_name_of_one_hundred_characters(): void
     {
         $product = CustomizablePrintProduct::factory()->create();
-        $name    = str_repeat('a', 100);
+        $name = str_repeat('a', 100);
         $this->service->editCustomizableProduct($product->product_id, $name, null, null);
         $product->refresh();
         $this->assertEquals($name, $product->product_name);
@@ -777,7 +809,7 @@ class ProductServiceTest extends TestCase
     public function edit_customizable_product_accepts_description_of_one_thousand_characters(): void
     {
         $product = CustomizablePrintProduct::factory()->create();
-        $desc    = str_repeat('a', 1000);
+        $desc = str_repeat('a', 1000);
         $this->service->editCustomizableProduct($product->product_id, 'Name', $desc, null);
         $product->refresh();
         $this->assertEquals($desc, $product->description);
@@ -788,7 +820,7 @@ class ProductServiceTest extends TestCase
     public function edit_customizable_product_accepts_description_of_two_thousand_characters(): void
     {
         $product = CustomizablePrintProduct::factory()->create();
-        $desc    = str_repeat('a', 2000);
+        $desc = str_repeat('a', 2000);
         $this->service->editCustomizableProduct($product->product_id, 'Name', $desc, null);
         $product->refresh();
         $this->assertEquals($desc, $product->description);
@@ -900,7 +932,7 @@ class ProductServiceTest extends TestCase
     public function create_category_accepts_name_of_twenty_six_characters(): void
     {
         $name = str_repeat('a', 26);
-        $cat  = $this->service->createCategory($name, null);
+        $cat = $this->service->createCategory($name, null);
         $this->assertEquals($name, $cat->category_name);
     }
 
@@ -909,7 +941,7 @@ class ProductServiceTest extends TestCase
     public function create_category_accepts_name_of_fifty_characters(): void
     {
         $name = str_repeat('a', 50);
-        $cat  = $this->service->createCategory($name, null);
+        $cat = $this->service->createCategory($name, null);
         $this->assertEquals($name, $cat->category_name);
     }
 
@@ -989,7 +1021,7 @@ class ProductServiceTest extends TestCase
     /** Category name of 26 characters (in-range) is accepted. */
     public function edit_category_accepts_name_of_twenty_six_characters(): void
     {
-        $cat  = ProductCategory::factory()->create();
+        $cat = ProductCategory::factory()->create();
         $name = str_repeat('a', 26);
         $this->service->editCategory($cat->category_id, $name, null);
         $cat->refresh();
@@ -1000,7 +1032,7 @@ class ProductServiceTest extends TestCase
     /** Category name of 50 characters (maximum) is accepted. */
     public function edit_category_accepts_name_of_fifty_characters(): void
     {
-        $cat  = ProductCategory::factory()->create();
+        $cat = ProductCategory::factory()->create();
         $name = str_repeat('a', 50);
         $this->service->editCategory($cat->category_id, $name, null);
         $cat->refresh();
@@ -1043,7 +1075,7 @@ class ProductServiceTest extends TestCase
     /** Deletion succeeds when only inactive products are in the category, and their category reference is cleared. */
     public function delete_category_succeeds_when_only_inactive_products_exist_and_nullifies_category(): void
     {
-        $cat     = ProductCategory::factory()->create();
+        $cat = ProductCategory::factory()->create();
         $product = StandardProduct::factory()->inactive()->create(['category_id' => $cat->category_id]);
 
         $this->service->deleteCategory($cat->category_id);

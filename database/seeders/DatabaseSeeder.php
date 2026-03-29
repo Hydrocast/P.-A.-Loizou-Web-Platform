@@ -35,17 +35,19 @@ class DatabaseSeeder extends Seeder
 {
     /**
      * Run the database seeders.
-     *
-     * @return void
      */
     public function run(): void
     {
         $this->call([
             AdministratorSeeder::class,
             ClipartSeeder::class,
-            CustomizableProductSeeder::class,
+            CustomizableUnisexTShirtSeeder::class,
             CustomizableWomenMediumFitTShirtSeeder::class,
             CustomizableKidsTShirtSeeder::class,
+            CustomizableMenRegularFitPoloTShirtSeeder::class,
+            CustomizableWomenRegularFitPoloTShirtSeeder::class,
+            CustomizableKidsPoloTShirtSeeder::class,
+            CustomizableUnisexAdultsHoodieSeeder::class,
         ]);
     }
 }

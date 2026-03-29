@@ -58,6 +58,11 @@ export type SelectedPrintSide = {
   label: string;
 };
 
+export type SelectedSize = {
+  value: string;
+  label: string;
+};
+
 export type WorkspacePageProps = {
   product: DesignProduct;
   clipart: ClipartItem[];
@@ -67,6 +72,7 @@ export type WorkspacePageProps = {
   selectedShirtColorId?: string | null;
   workspaceOptions?: WorkspaceOptions;
   selectedPrintSide?: SelectedPrintSide | null;
+  selectedSize?: SelectedSize | null;
 };
 
 export type SavedDesignListItem = {
@@ -80,6 +86,7 @@ export type SavedDesignListItem = {
   preview_image_reference?: string | null;
   shirt_color_label?: string | null;
   print_sides_label?: string | null;
+  size_label?: string | null;
   product?: {
     product_name?: string;
   } | null;

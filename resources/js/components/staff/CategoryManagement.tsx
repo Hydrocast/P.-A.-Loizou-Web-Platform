@@ -100,6 +100,13 @@ export default function CategoryManagement({
     return Object.keys(newErrors).length === 0;
   };
 
+  const resetForm = () => {
+    setFormData({
+      categoryName: '',
+      description: '',
+    });
+  };
+
   const handleAddCategory = () => {
     if (!validateForm()) return;
 
@@ -181,13 +188,6 @@ export default function CategoryManagement({
     setIsDeleteConfirmOpen(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      categoryName: '',
-      description: '',
-    });
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
       <div className="flex justify-between items-center mb-6">
@@ -260,11 +260,11 @@ export default function CategoryManagement({
             ) : (
               categories.map((category) => (
                 <tr key={category.categoryId} className="hover:bg-gray-50 align-top">
-                  <td className="pl-4 pr-8 py-4 font-medium text-gray-900 break-words whitespace-normal">
+                  <td className="pl-4 pr-8 py-4 font-medium text-gray-900 wrap-break-word whitespace-normal">
                     {category.categoryName}
                   </td>
 
-                  <td className="pl-6 pr-4 py-4 text-gray-700 break-words whitespace-normal">
+                  <td className="pl-6 pr-4 py-4 text-gray-700 wrap-break-word whitespace-normal">
                     {category.description ? (
                       category.description
                     ) : (

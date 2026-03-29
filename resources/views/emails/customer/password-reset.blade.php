@@ -6,15 +6,16 @@
     <title>Reset Your Password</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-        .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 6px; overflow: hidden; }
-        .header { background-color: #1a1a2e; padding: 32px 40px; }
+        .wrapper { max-width: 600px; margin: 24px auto; background: #ffffff; border-radius: 6px; overflow: hidden; }
+        .header { background-color: #1a1a2e; padding: 24px 32px; }
         .header h1 { color: #ffffff; margin: 0; font-size: 22px; font-weight: 600; }
-        .body { padding: 40px; color: #333333; font-size: 15px; line-height: 1.7; }
-        .body h2 { font-size: 18px; color: #1a1a2e; margin-top: 0; }
-        .button { display: inline-block; margin-top: 24px; padding: 12px 28px; background-color: #1a1a2e; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 15px; }
-        .expiry-notice { margin-top: 24px; padding: 16px; background-color: #fff8e1; border-left: 4px solid #f59e0b; font-size: 14px; color: #555555; }
-        .url-fallback { margin-top: 20px; font-size: 13px; color: #888888; word-break: break-all; }
-        .footer { background-color: #f4f4f4; padding: 24px 40px; font-size: 12px; color: #888888; text-align: center; }
+        .body { padding: 32px; color: #333333; font-size: 14px; line-height: 1.6; }
+        .body h2 { font-size: 18px; color: #1a1a2e; margin: 0 0 12px; }
+        .body p { margin: 0 0 14px; }
+        .button { display: inline-block; margin-top: 8px; padding: 11px 22px; background-color: #1a1a2e; color: #ffffff; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; }
+        .expiry-notice { margin-top: 18px; padding: 14px 16px; background-color: #fff8e1; border-left: 4px solid #f59e0b; font-size: 13px; line-height: 1.6; color: #555555; }
+        .url-fallback { margin-top: 16px; font-size: 12px; line-height: 1.6; color: #888888; word-break: break-all; }
+        .footer { background-color: #f4f4f4; padding: 18px 32px; font-size: 12px; line-height: 1.6; color: #888888; text-align: center; }
     </style>
 </head>
 <body>

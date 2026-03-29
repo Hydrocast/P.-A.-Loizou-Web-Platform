@@ -16,6 +16,8 @@ namespace App\Support;
  */
 class DesignProfileRegistry
 {
+    private static array $profileCache = [];
+
     /**
      * Returns the raw profile array for the given key, or null when missing/invalid.
      */
@@ -25,10 +27,17 @@ class DesignProfileRegistry
             return null;
         }
 
+        if (array_key_exists($profileKey, self::$profileCache)) {
+            return self::$profileCache[$profileKey];
+        }
+
         $profiles = config('design_profiles', []);
         $profile = $profiles[$profileKey] ?? null;
 
-        return is_array($profile) ? $profile : null;
+        $resolved = is_array($profile) ? $profile : null;
+        self::$profileCache[$profileKey] = $resolved;
+
+        return $resolved;
     }
 
     /**
@@ -61,6 +70,74 @@ class DesignProfileRegistry
         $productDetails = $profile['product_details'] ?? null;
 
         return is_array($productDetails) ? $productDetails : null;
+    }
+
+    /**
+     * Returns Product Detail size options for a given profile key.
+     */
+    public static function getSizeOptions(?string $profileKey): array
+    {
+        $profile = self::getProfile($profileKey);
+
+        if (! $profile) {
+            return [];
+        }
+
+        $sizeOptions = $profile['size_options'] ?? null;
+
+        if (
+            ! is_array($sizeOptions) ||
+            ! ($sizeOptions['enabled'] ?? false) ||
+            ! isset($sizeOptions['choices']) ||
+            ! is_array($sizeOptions['choices'])
+        ) {
+            return [];
+        }
+
+        return collect($sizeOptions['choices'])
+            ->filter(fn ($choice) => is_array($choice))
+            ->map(fn (array $choice) => [
+                'value' => self::stringOrEmpty($choice['value'] ?? null),
+                'label' => self::stringOrEmpty($choice['label'] ?? null),
+            ])
+            ->filter(fn (array $choice) => $choice['value'] !== '' && $choice['label'] !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Resolves the selected size safely from request/query or profile default.
+     */
+    public static function resolveSelectedSize(
+        mixed $requestedSize,
+        ?string $profileKey,
+    ): ?array {
+        $choices = collect(self::getSizeOptions($profileKey));
+
+        if ($choices->isEmpty()) {
+            return null;
+        }
+
+        if (is_string($requestedSize) && trim($requestedSize) !== '') {
+            $matched = $choices->firstWhere('value', trim($requestedSize));
+
+            if (is_array($matched)) {
+                return $matched;
+            }
+        }
+
+        $profile = self::getProfile($profileKey);
+        $defaultValue = $profile['size_options']['default'] ?? null;
+
+        if (is_string($defaultValue) && trim($defaultValue) !== '') {
+            $matched = $choices->firstWhere('value', trim($defaultValue));
+
+            if (is_array($matched)) {
+                return $matched;
+            }
+        }
+
+        return $choices->first();
     }
 
     /**

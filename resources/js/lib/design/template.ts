@@ -10,6 +10,19 @@ export type NormalizedTemplateConfig = {
 const DEFAULT_CANVAS_WIDTH = 1200;
 const DEFAULT_CANVAS_HEIGHT = 1400;
 
+/**
+ * Default print area used by the current t-shirt workspace/layout.
+ *
+ * This remains the safe fallback for any profile that does not yet define
+ * a valid custom print area.
+ */
+export const DEFAULT_PRINT_AREA: ProductTemplatePrintArea = {
+  left: 26,
+  top: 26,
+  width: 44,
+  height: 52,
+};
+
 function isValidPositiveNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
@@ -33,6 +46,12 @@ function normalizePrintArea(
   }
 
   return { left, top, width, height };
+}
+
+export function resolvePrintArea(
+  config?: ProductTemplateConfig | null,
+): ProductTemplatePrintArea {
+  return normalizePrintArea(config?.print_area) ?? DEFAULT_PRINT_AREA;
 }
 
 export function normalizeTemplateConfig(

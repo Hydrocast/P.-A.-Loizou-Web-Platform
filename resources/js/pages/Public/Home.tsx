@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import logoImage from '../../assets/logo.png';
+import logoImage from '../../assets/logo.webp';
 
 type Slide = {
   slide_id: number;
@@ -16,6 +16,15 @@ type Slide = {
 type HomeProps = {
   slides: Slide[];
 };
+
+const SERVICES = [
+  { name: 'Graphic Design', icon: '🎨' },
+  { name: 'Digital Prints', icon: '🖨️' },
+  { name: 'Large Format Printing', icon: '📐' },
+  { name: 'Brand/UV Printing', icon: '✨' },
+  { name: 'Laser Engraving', icon: '⚡' },
+  { name: 'T-Shirt Printing', icon: '👕' },
+];
 
 export default function Home({ slides }: HomeProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -44,22 +53,13 @@ export default function Home({ slides }: HomeProps) {
 
   const slide = slides.length > 0 ? slides[currentSlide] : null;
 
-  const services = [
-    { name: 'Graphic Design', icon: '🎨' },
-    { name: 'Digital Prints', icon: '🖨️' },
-    { name: 'Large Format Printing', icon: '📐' },
-    { name: 'Brand/UV Printing', icon: '✨' },
-    { name: 'Laser Engraving', icon: '⚡' },
-    { name: 'T-Shirt Printing', icon: '👕' },
-  ];
-
   return (
     <>
       <Head title="Loizou Prints - Bookstore & Design Store" />
 
       <div className="bg-white">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-700 via-purple-600 to-orange-500 py-20 text-white lg:py-22">
+        <div className="relative overflow-hidden bg-linear-to-br from-purple-700 via-purple-600 to-orange-500 py-20 text-white lg:py-22">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute right-0 top-0 h-96 w-96 translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white blur-3xl"></div>
@@ -75,7 +75,7 @@ export default function Home({ slides }: HomeProps) {
 
                 <h1 className="mb-5 text-4xl font-black leading-tight md:text-5xl lg:text-6xl">
                   <span className="block">Design & Printing</span>
-                    <span className="mt-1 block -translate-x-7 bg-gradient-to-r from-orange-300 to-yellow-200 bg-clip-text text-center text-transparent">
+                    <span className="mt-1 block -translate-x-7 bg-linear-to-r from-orange-300 to-yellow-200 bg-clip-text text-center text-transparent">
                       Services
                     </span>
                 </h1>
@@ -105,10 +105,11 @@ export default function Home({ slides }: HomeProps) {
 
               <div className="z-10 flex -translate-y-8 justify-center lg:justify-end">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-orange-400 to-pink-400 opacity-50 blur-2xl"></div>
+                  <div className="absolute inset-0 rounded-3xl bg-linear-to-br from-orange-400 to-pink-400 opacity-50 blur-2xl"></div>
                   <img
                     src={logoImage}
                     alt="Loizou Prints"
+                    fetchPriority="high"
                     className="relative w-full max-w-sm transform drop-shadow-2xl transition-transform duration-300 hover:scale-105 md:max-w-md"
                   />
                 </div>
@@ -117,8 +118,13 @@ export default function Home({ slides }: HomeProps) {
           </div>
 
           {/* Decorative wave */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div className="absolute bottom-0 left-0 right-0 h-30 leading-none">
+            <svg
+              viewBox="0 0 1440 120"
+              preserveAspectRatio="none"
+              className="block h-30 w-full"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z"
                 fill="white"
@@ -128,7 +134,7 @@ export default function Home({ slides }: HomeProps) {
         </div>
 
         {/* Everything below hero gets equal left/right padding */}
-        <div className="px-10 sm:px-12 lg:px-14">
+        <div className="px-4 sm:px-12 lg:px-14">
           {/* Services Grid */}
           <section className="bg-gray-50 py-12 md:py-14">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -143,7 +149,7 @@ export default function Home({ slides }: HomeProps) {
               </div>
 
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-                {services.map((service, index) => (
+                {SERVICES.map((service, index) => (
                   <div
                     key={index}
                     className="rounded-2xl border border-gray-100 bg-white px-4 py-5 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
@@ -159,21 +165,22 @@ export default function Home({ slides }: HomeProps) {
           </section>
 
           {/* Carousel */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <div className="relative bg-gradient-to-br from-purple-50 to-orange-50 rounded-3xl shadow-2xl overflow-hidden border border-purple-100">
+          <div className="mx-auto max-w-7xl px-0 sm:px-6 lg:px-8 py-10 md:py-16">
+            <div className="relative overflow-hidden rounded-2xl border border-purple-100 bg-linear-to-br from-purple-50 to-orange-50 shadow-xl md:rounded-3xl md:shadow-2xl">
               <div className="grid grid-cols-1 lg:grid-cols-2">
                 {/* Image Side */}
-                <div className="relative h-96 lg:h-auto bg-gradient-to-br from-purple-100 to-orange-100">
-                  <div className="absolute top-6 left-6 bg-orange-500 text-white px-6 py-2 rounded-full font-bold text-sm shadow-lg">
+                <div className="relative h-56 bg-linear-to-br from-purple-100 to-orange-100 sm:h-72 lg:h-auto">
+                  <div className="absolute left-4 top-4 rounded-full bg-orange-500 px-4 py-1.5 text-xs font-bold text-white shadow-lg sm:left-6 sm:top-6 sm:px-6 sm:py-2 sm:text-sm">
                     Hot Deal
                   </div>
 
-                  <div className="h-full flex items-center justify-center p-8">
+                  <div className="flex h-full items-center justify-center p-4 sm:p-6 lg:p-8">
                     {slide?.image_url ? (
                       <img
                         src={slide.image_url}
                         alt={slide.title}
                         className="max-h-full max-w-full object-contain"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="text-8xl">🎨</div>
@@ -182,18 +189,18 @@ export default function Home({ slides }: HomeProps) {
                 </div>
 
                 {/* Content Side */}
-                <div className="p-12 flex flex-col justify-center">
-                  <h3 className="text-4xl font-bold mb-4 text-purple-900">
+                <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
+                  <h3 className="mb-3 text-2xl font-bold leading-tight wrap-break-word text-purple-900 sm:mb-4 sm:text-3xl lg:text-4xl">
                     {slide?.title ?? 'Latest Promotions'}
                   </h3>
-                  <p className="text-xl text-gray-700 mb-8 leading-relaxed">
+                  <p className="mb-6 text-base leading-7 text-gray-700 sm:mb-8 sm:text-lg lg:text-xl">
                     {slide?.description ?? 'Check out our latest offers and featured products.'}
                   </p>
 
                   {slide?.product_id && slide?.product_type && (
                     <Link
                       href={`/product/${slide.product_type}/${slide.product_id}`}
-                      className="inline-flex items-center bg-purple-600 text-white px-8 py-4 rounded-xl hover:bg-purple-700 font-semibold text-lg transition-all transform hover:scale-105 shadow-lg w-fit"
+                      className="inline-flex w-fit items-center rounded-xl bg-purple-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-all hover:bg-purple-700 hover:scale-105 sm:px-8 sm:py-4 sm:text-lg"
                     >
                       Shop Now →
                     </Link>
@@ -201,7 +208,7 @@ export default function Home({ slides }: HomeProps) {
 
                   {/* Dots Navigation */}
                   {slides.length > 0 && (
-                    <div className="flex space-x-3 mt-8">
+                    <div className="mt-6 flex space-x-3 sm:mt-8">
                       {slides.map((_, index) => (
                         <button
                           key={index}
@@ -222,17 +229,17 @@ export default function Home({ slides }: HomeProps) {
                 <>
                   <button
                     onClick={prevSlide}
-                    className="cursor-pointer absolute left-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full hover:bg-gray-100 shadow-xl transition-all transform hover:scale-110 z-10"
+                    className="absolute left-3 top-44 z-10 cursor-pointer rounded-full bg-white p-2.5 shadow-lg transition-all hover:scale-110 hover:bg-gray-100 sm:left-4 sm:top-1/2 sm:-translate-y-1/2 sm:p-3 sm:shadow-xl"
                     aria-label="Previous slide"
                   >
-                    <ChevronLeft className="w-6 h-6 text-purple-600" />
+                    <ChevronLeft className="h-5 w-5 text-purple-600 sm:h-6 sm:w-6" />
                   </button>
                   <button
                     onClick={nextSlide}
-                    className="cursor-pointer absolute right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full hover:bg-gray-100 shadow-xl transition-all transform hover:scale-110 z-10"
+                    className="absolute right-3 top-44 z-10 cursor-pointer rounded-full bg-white p-2.5 shadow-lg transition-all hover:scale-110 hover:bg-gray-100 sm:right-4 sm:top-1/2 sm:-translate-y-1/2 sm:p-3 sm:shadow-xl"
                     aria-label="Next slide"
                   >
-                    <ChevronRight className="w-6 h-6 text-purple-600" />
+                    <ChevronRight className="h-5 w-5 text-purple-600 sm:h-6 sm:w-6" />
                   </button>
                 </>
               )}
@@ -300,7 +307,7 @@ export default function Home({ slides }: HomeProps) {
         </div>
 
         {/* CTA */}
-        <section className="bg-gradient-to-r from-purple-600 to-orange-500 py-12 text-white">
+        <section className="bg-linear-to-r from-purple-600 to-orange-500 py-12 text-white">
           <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <h2 className="mb-3 text-2xl font-bold md:text-3xl">Ready to Get Started?</h2>
             <p className="mx-auto mb-7 max-w-2xl text-base leading-7 text-purple-50 md:text-lg">

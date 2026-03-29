@@ -1,6 +1,6 @@
-import React from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { User, Package, Heart, Palette, LogOut } from 'lucide-react';
+import React from 'react';
 
 type ActiveSection = 'profile' | 'orders' | 'designs' | 'wishlist';
 

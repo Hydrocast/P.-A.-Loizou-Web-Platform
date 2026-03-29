@@ -66,6 +66,11 @@ class DesignController extends Controller
             $workspaceOptions,
         );
 
+        $selectedSize = DesignProfileRegistry::resolveSelectedSize(
+            $request->query('size'),
+            $profileKey,
+        );
+
         return Inertia::render('Customer/Design/DesignWorkspace', [
             'product' => $product,
             'clipart' => $this->clipartService->getAllClipart(),
@@ -75,6 +80,7 @@ class DesignController extends Controller
             'selectedShirtColorId' => $selectedShirtColorId,
             'workspaceOptions' => $workspaceOptions,
             'selectedPrintSide' => $selectedPrintSide,
+            'selectedSize' => $selectedSize,
         ]);
     }
 
@@ -111,6 +117,7 @@ class DesignController extends Controller
             $data['design_name'],
             $storedDesignDocument,
             $data['preview_image_reference'] ?? null,
+            $data['print_file_reference'] ?? null,
         );
 
         return back()->with('success', 'Design saved successfully.');
@@ -154,6 +161,11 @@ class DesignController extends Controller
             $workspaceOptions,
         );
 
+        $selectedSize = DesignProfileRegistry::resolveSelectedSize(
+            $storedCustomization['size']['value'] ?? null,
+            $profileKey,
+        );
+
         return Inertia::render('Customer/Design/DesignWorkspace', [
             'product' => $product,
             'clipart' => $this->clipartService->getAllClipart(),
@@ -163,6 +175,7 @@ class DesignController extends Controller
             'selectedShirtColorId' => $selectedShirtColorId,
             'workspaceOptions' => $workspaceOptions,
             'selectedPrintSide' => $selectedPrintSide,
+            'selectedSize' => $selectedSize,
         ]);
     }
 

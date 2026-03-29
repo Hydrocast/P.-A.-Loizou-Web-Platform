@@ -38,6 +38,7 @@ class CheckoutController extends Controller
                         'resolved_unit_price' => $item->resolved_unit_price,
                         'resolved_line_subtotal' => $item->resolved_line_subtotal,
                         'shirt_color_label' => DesignDocument::extractShirtColorLabel($item->design_snapshot),
+                        'size_label' => DesignDocument::extractSizeLabel($item->design_snapshot),
                         'print_sides_label' => DesignDocument::extractPrintSidesLabel($item->design_snapshot),
                         'product' => $item->product ? [
                             'product_name' => $item->product->product_name,
@@ -95,6 +96,7 @@ class CheckoutController extends Controller
                         'quantity' => $item->quantity,
                         'line_subtotal' => $item->line_subtotal,
                         'shirt_color_label' => DesignDocument::extractShirtColorLabel($item->design_snapshot),
+                        'size_label' => DesignDocument::extractSizeLabel($item->design_snapshot),
                         'print_sides_label' => DesignDocument::extractPrintSidesLabel($item->design_snapshot),
                     ];
                 })->values(),

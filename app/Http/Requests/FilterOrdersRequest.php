@@ -12,6 +12,8 @@ use Illuminate\Validation\Rules\Enum;
  *
  * All fields are optional. When omitted the corresponding filter is not applied.
  *
+ * order_number supports exact order ID lookup from the staff order list filters.
+ *
  * The after_or_equal rule for end_date is applied only when a start_date is
  * provided. If only one date is supplied, the constraint is skipped, allowing
  * valid filtering by a single date.
@@ -20,10 +22,12 @@ use Illuminate\Validation\Rules\Enum;
  * When omitted, the frontend and backend default to newest first.
  *
  * Valid filter combinations:
+ *   - order_number only
  *   - status only
  *   - start_date only
  *   - end_date only
  *   - start_date + end_date (end_date must be on or after start_date)
+ *   - order_number with any other filter combination
  *   - status with any date combination
  *   - sort_order with or without any other filter
  */
@@ -31,8 +35,6 @@ class FilterOrdersRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
@@ -47,9 +49,10 @@ class FilterOrdersRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'order_number' => ['nullable', 'integer', 'min:1'],
             'order_status' => ['nullable', new Enum(OrderStatus::class)],
-            'start_date'   => ['nullable', 'date'],
-            'end_date'     => [
+            'start_date' => ['nullable', 'date'],
+            'end_date' => [
                 'nullable',
                 'date',
                 Rule::when(
@@ -57,7 +60,7 @@ class FilterOrdersRequest extends FormRequest
                     ['after_or_equal:start_date']
                 ),
             ],
-            'sort_order'   => ['nullable', Rule::in(['asc', 'desc'])],
+            'sort_order' => ['nullable', Rule::in(['asc', 'desc'])],
         ];
     }
 
@@ -69,10 +72,12 @@ class FilterOrdersRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'start_date.date'         => 'Start date must be a valid date.',
-            'end_date.date'           => 'End date must be a valid date.',
+            'order_number.integer' => 'Order number must be a valid number.',
+            'order_number.min' => 'Order number must be at least 1.',
+            'start_date.date' => 'Start date must be a valid date.',
+            'end_date.date' => 'End date must be a valid date.',
             'end_date.after_or_equal' => 'End date must be on or after the start date.',
-            'sort_order.in'           => 'Sort order must be either ascending or descending.',
+            'sort_order.in' => 'Sort order must be either ascending or descending.',
         ];
     }
 }

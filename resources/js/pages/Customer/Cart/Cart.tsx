@@ -11,6 +11,7 @@ type CartItem = {
   preview_image_reference?: string | null;
   shirt_color_label?: string | null;
   print_sides_label?: string | null;
+  size_label?: string | null;
   product?: {
     product_name?: string;
   } | null;
@@ -75,10 +76,6 @@ export default function Cart() {
     };
   }, [flash?.success]);
 
-  if (!customer) {
-    return null;
-  }
-
   const openRemoveConfirmation = (item: CartItem) => {
     setItemPendingRemoval(item);
   };
@@ -93,7 +90,7 @@ export default function Cart() {
     router.delete(`/cart/${itemPendingRemoval.cart_item_id}`, {
       preserveScroll: true,
       onFinish: () => {
-        closeRemoveConfirmation();
+        setItemPendingRemoval(null);
       },
     });
   };
@@ -112,12 +109,16 @@ export default function Cart() {
     );
   };
 
+  if (!customer) {
+    return null;
+  }
+
   return (
     <>
       <Head title="Cart" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:mb-8">Shopping Cart</h1>
 
       {errorMessage && (
         <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -132,7 +133,7 @@ export default function Cart() {
       )}
 
       {cartItems.length === 0 ? (
-        <div className="bg-white p-12 rounded-lg shadow-sm text-center">
+        <div className="rounded-lg bg-white p-8 text-center shadow-sm sm:p-10 md:p-12">
           <p className="text-gray-600 mb-4">Your cart is empty.</p>
           <Link
             href="/catalog"
@@ -142,11 +143,11 @@ export default function Cart() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-4">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
+          <div className="space-y-4 lg:col-span-2">
             {cartItems.map((item) => (
-              <div key={item.cart_item_id} className="bg-white p-6 rounded-lg shadow-sm">
-                <div className="flex items-start justify-between gap-4">
+              <div key={item.cart_item_id} className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-lg mb-2 wrap-break-word">
                       {item.product?.product_name ?? `Product #${item.product_id}`}
@@ -157,21 +158,25 @@ export default function Cart() {
                         Custom design item
                       </p>
 
-                      {(item.shirt_color_label || item.print_sides_label) && (
+                      {(item.shirt_color_label || item.print_sides_label || item.size_label) && (
                         <div className="space-y-1 text-xs text-gray-500">
                           {item.shirt_color_label && (
-                            <p>Shirt Color: {item.shirt_color_label}</p>
+                            <p className="wrap-break-word">Shirt Color: {item.shirt_color_label}</p>
+                          )}
+
+                          {item.size_label && (
+                            <p className="wrap-break-word">Size: {item.size_label}</p>
                           )}
 
                           {item.print_sides_label && (
-                            <p>Print Sides: {item.print_sides_label}</p>
+                            <p className="wrap-break-word">Print Sides: {item.print_sides_label}</p>
                           )}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
+                    <div className="flex items-center">
+                      <div className="flex items-center overflow-hidden rounded-md border border-gray-300">
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item.cart_item_id, item.quantity - 1)}
@@ -182,7 +187,7 @@ export default function Cart() {
                           <Minus className="w-4 h-4" />
                         </button>
 
-                        <span className="px-4 py-2 border-x border-gray-300 min-w-13 text-center">
+                        <span className="min-w-12 border-x border-gray-300 px-3 py-2 text-center sm:min-w-13 sm:px-4">
                           {item.quantity}
                         </span>
 
@@ -199,11 +204,11 @@ export default function Cart() {
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0">
+                  <div className="shrink-0 sm:text-right">
                     <button
                       type="button"
                       onClick={() => openRemoveConfirmation(item)}
-                      className="inline-flex items-center text-sm text-red-600 hover:text-red-700 transition-colors cursor-pointer"
+                      className="inline-flex w-full items-center justify-center rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 transition-colors cursor-pointer hover:bg-red-50 hover:text-red-700 sm:w-auto sm:justify-start sm:border-0 sm:px-0 sm:py-0 sm:hover:bg-transparent"
                     >
                       <Trash2 className="w-4 h-4 mr-1" />
                       Remove
@@ -216,7 +221,7 @@ export default function Cart() {
                     <img
                       src={item.preview_image_reference}
                       alt="Design preview"
-                      className="w-32 h-32 object-cover rounded border border-gray-200"
+                      className="h-28 w-28 rounded border border-gray-200 object-cover sm:h-32 sm:w-32"
                     />
                   </div>
                 )}
@@ -225,8 +230,8 @@ export default function Cart() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm sticky top-24">
-              <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+            <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6 lg:sticky lg:top-24">
+              <h2 className="mb-4 text-lg font-semibold sm:text-xl">Order Summary</h2>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">

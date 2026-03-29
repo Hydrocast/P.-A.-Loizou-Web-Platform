@@ -32,6 +32,7 @@ class CartController extends Controller
                 'design_snapshot' => $item->design_snapshot,
                 'preview_image_reference' => $item->preview_image_reference,
                 'shirt_color_label' => DesignDocument::extractShirtColorLabel($item->design_snapshot),
+                'size_label' => DesignDocument::extractSizeLabel($item->design_snapshot),
                 'print_sides_label' => DesignDocument::extractPrintSidesLabel($item->design_snapshot),
                 'product' => $item->product ? [
                     'product_name' => $item->product->product_name,
@@ -56,6 +57,7 @@ class CartController extends Controller
             $data['quantity'],
             $storedDesignDocument,
             $data['preview_image_reference'] ?? null,
+            $data['print_file_reference'] ?? null,
         );
 
         return redirect()->route('cart.index')

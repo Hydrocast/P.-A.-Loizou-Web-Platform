@@ -28,7 +28,7 @@ test('it extracts canvas json from wrapped envelope', function () {
 });
 
 test('it returns raw value for legacy stored canvas json', function () {
-    $legacy = '{"objects":[{"type":"image"}]}' ;
+    $legacy = '{"objects":[{"type":"image"}]}';
 
     expect(DesignDocument::extractCanvasJson($legacy))->toBe($legacy);
     expect(DesignDocument::extractCustomization($legacy))->toBe([]);
@@ -46,4 +46,38 @@ test('it extracts shirt color and print sides labels from customization metadata
 
     expect(DesignDocument::extractShirtColorLabel($stored))->toBe('Navy')
         ->and(DesignDocument::extractPrintSidesLabel($stored))->toBe('Both Sides (Front and Back)');
+});
+
+test('it extracts unique image sources from wrapped design documents', function () {
+    $stored = json_encode([
+        'schema_version' => 1,
+        'canvas_json' => json_encode([
+            'objects' => [
+                ['type' => 'text', 'text' => 'Hello'],
+                ['type' => 'image', 'src' => '/images/clipart/star.png'],
+                ['type' => 'image', 'src' => '/images/clipart/star.png'],
+                ['type' => 'image', 'src' => '/images/uploads/custom.png'],
+            ],
+        ], JSON_UNESCAPED_SLASHES),
+        'customization' => [],
+    ], JSON_UNESCAPED_SLASHES);
+
+    expect(DesignDocument::extractImageSrcs($stored))->toBe([
+        '/images/clipart/star.png',
+        '/images/uploads/custom.png',
+    ]);
+});
+
+test('it extracts image sources from legacy raw fabric json and handles invalid input', function () {
+    $legacy = json_encode([
+        'objects' => [
+            ['type' => 'image', 'src' => '/images/clipart/heart.png'],
+            ['type' => 'path', 'path' => 'M0 0 L10 10'],
+        ],
+    ], JSON_UNESCAPED_SLASHES);
+
+    expect(DesignDocument::extractImageSrcs($legacy))->toBe([
+        '/images/clipart/heart.png',
+    ])->and(DesignDocument::extractImageSrcs(null))->toBe([])
+        ->and(DesignDocument::extractImageSrcs('not-json'))->toBe([]);
 });

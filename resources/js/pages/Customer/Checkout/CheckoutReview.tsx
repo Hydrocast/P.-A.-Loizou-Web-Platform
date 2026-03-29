@@ -7,6 +7,7 @@ type CheckoutItem = {
   resolved_unit_price: number;
   resolved_line_subtotal: number;
   shirt_color_label?: string | null;
+  size_label?: string | null;
   print_sides_label?: string | null;
   product?: {
     product_name?: string;
@@ -50,37 +51,48 @@ export default function CheckoutReview() {
     post('/checkout');
   };
 
+  const formattedPrices = {
+    cartTotal: Number(checkout.cart_total).toFixed(2),
+    vatRate: Number(checkout.vat_rate).toFixed(2),
+    vatAmount: Number(checkout.vat_amount).toFixed(2),
+    netAmount: Number(checkout.net_amount).toFixed(2),
+  };
+
   return (
     <>
       <Head title="Checkout" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <h1 className="mb-6 text-2xl font-bold sm:text-3xl md:mb-8">Checkout</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           <div className="lg:col-span-2">
-            <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+            <div className="mb-6 rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
               <h2 className="text-xl font-semibold mb-4">Order Items</h2>
 
               <div className="space-y-4">
                 {checkout.items.map((item) => (
                   <div
                     key={item.cart_item_id}
-                    className="flex justify-between items-start pb-4 border-b last:border-b-0"
+                    className="flex flex-col gap-2 border-b pb-4 last:border-b-0 sm:flex-row sm:items-start sm:justify-between"
                   >
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium">
+                      <h3 className="font-medium wrap-break-word">
                         {item.product?.product_name ?? `Product #${item.product_id}`}
                       </h3>
 
-                      {(item.shirt_color_label || item.print_sides_label) && (
+                      {(item.shirt_color_label || item.print_sides_label || item.size_label) && (
                         <div className="mt-1 space-y-1 text-xs text-gray-500">
                           {item.shirt_color_label && (
-                            <p>Shirt Color: {item.shirt_color_label}</p>
+                            <p className="wrap-break-word">Shirt Color: {item.shirt_color_label}</p>
+                          )}
+
+                          {item.size_label && (
+                            <p className="wrap-break-word">Size: {item.size_label}</p>
                           )}
 
                           {item.print_sides_label && (
-                            <p>Print Sides: {item.print_sides_label}</p>
+                            <p className="wrap-break-word">Print Sides: {item.print_sides_label}</p>
                           )}
                         </div>
                       )}
@@ -90,7 +102,7 @@ export default function CheckoutReview() {
                       </p>
                     </div>
 
-                    <p className="ml-4 shrink-0 font-semibold">
+                    <p className="font-semibold sm:ml-4 sm:shrink-0">
                       €{Number(item.resolved_line_subtotal).toFixed(2)}
                     </p>
                   </div>
@@ -104,7 +116,7 @@ export default function CheckoutReview() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
               <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -150,7 +162,7 @@ export default function CheckoutReview() {
                   </label>
 
                   <div className="flex rounded-md shadow-sm">
-                    <div className="inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-gray-600 text-sm font-medium">
+                    <div className="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600">
                       +357
                     </div>
 
@@ -179,7 +191,7 @@ export default function CheckoutReview() {
                 <button
                   type="submit"
                   disabled={processing}
-                  className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 font-semibold mt-6 disabled:opacity-60"
+                  className="w-full cursor-pointer bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 font-semibold mt-6 disabled:opacity-60"
                 >
                   {processing ? 'Placing Order...' : 'Place Order'}
                 </button>
@@ -188,25 +200,25 @@ export default function CheckoutReview() {
           </div>
 
           <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-lg shadow-sm sticky top-24">
-              <h2 className="text-xl font-semibold mb-4">Pricing Summary</h2>
+            <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6 lg:sticky lg:top-24">
+              <h2 className="mb-4 text-lg font-semibold sm:text-xl">Pricing Summary</h2>
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span>€{Number(checkout.cart_total).toFixed(2)}</span>
+                  <span>€{formattedPrices.cartTotal}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>VAT ({Number(checkout.vat_rate).toFixed(2)}%)</span>
-                  <span>€{Number(checkout.vat_amount).toFixed(2)}</span>
+                  <span>VAT ({formattedPrices.vatRate}%)</span>
+                  <span>€{formattedPrices.vatAmount}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Net Amount</span>
-                  <span>€{Number(checkout.net_amount).toFixed(2)}</span>
+                  <span>€{formattedPrices.netAmount}</span>
                 </div>
                 <div className="border-t pt-3 flex justify-between font-bold text-lg">
                   <span>Total</span>
-                  <span>€{Number(checkout.cart_total).toFixed(2)}</span>
+                  <span>€{formattedPrices.cartTotal}</span>
                 </div>
               </div>
 

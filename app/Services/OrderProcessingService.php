@@ -51,27 +51,32 @@ class OrderProcessingService
      * Any parameter may be null to skip that filter.
      */
     public function filterOrders(
+        ?int $orderNumber,
         ?OrderStatus $status,
         ?\DateTimeInterface $startDate,
         ?\DateTimeInterface $endDate,
         string $sortOrder = 'desc',
     ): Collection {
         $query = CustomerOrder::query();
-    
+
+        if ($orderNumber !== null) {
+            $query->where('order_id', $orderNumber);
+        }
+
         if ($status !== null) {
             $query->where('order_status', $status->value);
         }
-    
+
         if ($startDate !== null) {
             $query->where('order_creation_timestamp', '>=', $startDate);
         }
-    
+
         if ($endDate !== null) {
             $query->where('order_creation_timestamp', '<=', $endDate);
         }
-    
+
         $sortDirection = $sortOrder === 'asc' ? 'asc' : 'desc';
-    
+
         return $query->orderBy('order_creation_timestamp', $sortDirection)->get();
     }
 

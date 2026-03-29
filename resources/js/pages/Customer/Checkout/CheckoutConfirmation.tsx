@@ -8,6 +8,7 @@ type OrderItem = {
   quantity: number;
   line_subtotal: number;
   shirt_color_label?: string | null;
+  size_label?: string | null;
   print_sides_label?: string | null;
 };
 
@@ -31,15 +32,22 @@ type PageProps = {
 export default function CheckoutConfirmation() {
   const { props } = usePage<PageProps>();
   const { order } = props;
+  const formattedOrder = {
+    date: new Date(order.order_creation_timestamp).toLocaleDateString(),
+    total: Number(order.total_amount).toFixed(2),
+    netAmount: Number(order.net_amount).toFixed(2),
+    vatRate: Number(order.vat_rate).toFixed(2),
+    vatAmount: Number(order.vat_amount).toFixed(2),
+  };
 
   return (
     <>
       <Head title="Order Confirmation" />
 
-      <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 lg:px-8">
-        <div className="rounded-lg bg-white p-5 shadow-md sm:p-6">
+      <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="rounded-lg bg-white p-4 shadow-md sm:p-5 md:p-6">
           <div className="mb-6 text-center">
-            <CheckCircle className="mx-auto mb-3 h-12 w-12 text-green-600" />
+            <CheckCircle className="mx-auto mb-3 h-10 w-10 text-green-600 sm:h-12 sm:w-12" />
             <h1 className="mb-1 text-2xl font-bold text-gray-900 sm:text-3xl">
               Order Confirmed!
             </h1>
@@ -49,7 +57,7 @@ export default function CheckoutConfirmation() {
           </div>
 
           <div className="mb-5 rounded-lg bg-gray-50 p-4">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
               <div>
                 <p className="text-xs text-gray-500">Order Number</p>
                 <p className="text-sm font-semibold text-gray-900">#{order.order_id}</p>
@@ -58,7 +66,7 @@ export default function CheckoutConfirmation() {
               <div>
                 <p className="text-xs text-gray-500">Order Date</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  {new Date(order.order_creation_timestamp).toLocaleDateString()}
+                  {formattedOrder.date}
                 </p>
               </div>
 
@@ -72,7 +80,7 @@ export default function CheckoutConfirmation() {
               <div>
                 <p className="text-xs text-gray-500">Total Amount</p>
                 <p className="text-sm font-semibold text-gray-900">
-                  €{Number(order.total_amount).toFixed(2)}
+                  €{formattedOrder.total}
                 </p>
               </div>
             </div>
@@ -85,19 +93,23 @@ export default function CheckoutConfirmation() {
               {order.items.map((item) => (
                 <div
                   key={item.order_item_id}
-                  className="flex items-start justify-between border-b border-gray-200 pb-3"
+                  className="flex flex-col gap-2 border-b border-gray-200 pb-3 sm:flex-row sm:items-start sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <h3 className="text-sm font-medium text-gray-900">{item.product_name}</h3>
+                    <h3 className="text-sm font-medium text-gray-900 wrap-break-word">{item.product_name}</h3>
 
-                    {(item.shirt_color_label || item.print_sides_label) && (
+                    {(item.shirt_color_label || item.print_sides_label || item.size_label) && (
                       <div className="mt-1 space-y-0.5 text-xs text-gray-500">
                         {item.shirt_color_label && (
-                          <p>Shirt Color: {item.shirt_color_label}</p>
+                          <p className="wrap-break-word">Shirt Color: {item.shirt_color_label}</p>
+                        )}
+
+                        {item.size_label && (
+                          <p className="wrap-break-word">Size: {item.size_label}</p>
                         )}
 
                         {item.print_sides_label && (
-                          <p>Print Sides: {item.print_sides_label}</p>
+                          <p className="wrap-break-word">Print Sides: {item.print_sides_label}</p>
                         )}
                       </div>
                     )}
@@ -107,7 +119,7 @@ export default function CheckoutConfirmation() {
                     </p>
                   </div>
 
-                  <p className="ml-4 shrink-0 text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-gray-900 sm:ml-4 sm:shrink-0">
                     €{Number(item.line_subtotal).toFixed(2)}
                   </p>
                 </div>
@@ -117,17 +129,17 @@ export default function CheckoutConfirmation() {
             <div className="mt-4 space-y-1.5">
               <div className="flex justify-between text-sm text-gray-600">
                 <span>Net Amount</span>
-                <span>€{Number(order.net_amount).toFixed(2)}</span>
+                <span>€{formattedOrder.netAmount}</span>
               </div>
 
               <div className="flex justify-between text-sm text-gray-600">
-                <span>VAT ({Number(order.vat_rate).toFixed(2)}%)</span>
-                <span>€{Number(order.vat_amount).toFixed(2)}</span>
+                <span>VAT ({formattedOrder.vatRate}%)</span>
+                <span>€{formattedOrder.vatAmount}</span>
               </div>
 
               <div className="flex justify-between border-t pt-2 text-base font-bold text-gray-900">
                 <span>Total</span>
-                <span>€{Number(order.total_amount).toFixed(2)}</span>
+                <span>€{formattedOrder.total}</span>
               </div>
             </div>
           </div>
@@ -138,7 +150,7 @@ export default function CheckoutConfirmation() {
             <div className="space-y-2">
               <div className="flex items-center text-sm text-gray-700">
                 <Mail className="mr-2.5 h-4 w-4 text-gray-400" />
-                <span>{order.customer_email}</span>
+                <span className="wrap-break-word">{order.customer_email}</span>
               </div>
 
               <div className="flex items-center text-sm text-gray-700">

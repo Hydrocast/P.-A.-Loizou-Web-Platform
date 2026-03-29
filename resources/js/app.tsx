@@ -1,10 +1,10 @@
 import './bootstrap';
 import '../css/app.css';
 
-import React, { type ReactNode, type ComponentType } from 'react';
-import { createRoot } from 'react-dom/client';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import type { ReactNode, ComponentType } from 'react';
+import { createRoot } from 'react-dom/client';
 import AppLayout from './layouts/AppLayout';
 
 type InertiaPageModule = {

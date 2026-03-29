@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Models;
 
-use PHPUnit\Framework\Attributes\Test;
 use App\Models\CartItem;
 use App\Models\CustomizablePrintProduct;
 use App\Models\ShoppingCart;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -27,7 +27,7 @@ class CartItemTest extends TestCase
     /** Model uses the cart_items table. */
     public function model_uses_cart_items_table(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertSame('cart_items', $item->getTable());
     }
@@ -36,7 +36,7 @@ class CartItemTest extends TestCase
     /** Primary key is cart_item_id. */
     public function primary_key_is_cart_item_id(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertSame('cart_item_id', $item->getKeyName());
     }
@@ -45,7 +45,7 @@ class CartItemTest extends TestCase
     /** Primary key type is integer. */
     public function primary_key_type_is_integer(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertSame('int', $item->getKeyType());
     }
@@ -54,7 +54,7 @@ class CartItemTest extends TestCase
     /** Primary key is auto-incrementing. */
     public function primary_key_is_auto_incrementing(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertTrue($item->incrementing);
     }
@@ -63,7 +63,7 @@ class CartItemTest extends TestCase
     /** Timestamps are disabled. */
     public function timestamps_are_disabled(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertFalse($item->timestamps);
     }
@@ -72,7 +72,7 @@ class CartItemTest extends TestCase
     /** Fillable array contains expected fields. */
     public function fillable_contains_expected_fields(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
         $fillable = $item->getFillable();
 
         $this->assertContains('cart_id', $fillable);
@@ -80,6 +80,7 @@ class CartItemTest extends TestCase
         $this->assertContains('quantity', $fillable);
         $this->assertContains('design_snapshot', $fillable);
         $this->assertContains('preview_image_reference', $fillable);
+        $this->assertContains('print_file_reference', $fillable);
         $this->assertContains('date_added', $fillable);
     }
 
@@ -87,7 +88,7 @@ class CartItemTest extends TestCase
     /** date_added is cast to datetime. */
     public function date_added_cast_is_configured(): void
     {
-        $item = new CartItem();
+        $item = new CartItem;
 
         $this->assertSame('datetime', $item->getCasts()['date_added']);
     }
@@ -100,7 +101,7 @@ class CartItemTest extends TestCase
     /** cart() returns a BelongsTo relation. */
     public function cart_returns_belongs_to_relation(): void
     {
-        $relation = (new CartItem())->cart();
+        $relation = (new CartItem)->cart();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -109,7 +110,7 @@ class CartItemTest extends TestCase
     /** cart() uses cart_id as foreign key. */
     public function cart_uses_cart_id_as_foreign_key(): void
     {
-        $relation = (new CartItem())->cart();
+        $relation = (new CartItem)->cart();
 
         $this->assertSame('cart_id', $relation->getForeignKeyName());
     }
@@ -118,7 +119,7 @@ class CartItemTest extends TestCase
     /** cart() relates to ShoppingCart model. */
     public function cart_relates_to_shopping_cart_model(): void
     {
-        $relation = (new CartItem())->cart();
+        $relation = (new CartItem)->cart();
 
         $this->assertInstanceOf(ShoppingCart::class, $relation->getRelated());
     }
@@ -131,7 +132,7 @@ class CartItemTest extends TestCase
     /** product() returns a BelongsTo relation. */
     public function product_returns_belongs_to_relation(): void
     {
-        $relation = (new CartItem())->product();
+        $relation = (new CartItem)->product();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -140,7 +141,7 @@ class CartItemTest extends TestCase
     /** product() uses product_id as foreign key. */
     public function product_uses_product_id_as_foreign_key(): void
     {
-        $relation = (new CartItem())->product();
+        $relation = (new CartItem)->product();
 
         $this->assertSame('product_id', $relation->getForeignKeyName());
     }
@@ -149,7 +150,7 @@ class CartItemTest extends TestCase
     /** product() relates to CustomizablePrintProduct model. */
     public function product_relates_to_customizable_print_product_model(): void
     {
-        $relation = (new CartItem())->product();
+        $relation = (new CartItem)->product();
 
         $this->assertInstanceOf(CustomizablePrintProduct::class, $relation->getRelated());
     }

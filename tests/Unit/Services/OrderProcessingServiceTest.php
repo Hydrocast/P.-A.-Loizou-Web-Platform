@@ -2,16 +2,17 @@
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\Attributes\Test;
 use App\Enums\OrderStatus;
 use App\Events\OrderStatusChanged;
 use App\Models\CustomerOrder;
 use App\Models\Staff;
+use App\Services\EmailService;
 use App\Services\OrderProcessingService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -29,7 +30,9 @@ class OrderProcessingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new OrderProcessingService();
+        $this->service = new OrderProcessingService(
+            $this->createMock(EmailService::class),
+        );
     }
 
     #[Test]
@@ -100,7 +103,7 @@ class OrderProcessingServiceTest extends TestCase
         CustomerOrder::factory()->completed()->create();
         CustomerOrder::factory()->cancelled()->create();
 
-        $result = $this->service->filterOrders(null, null, null);
+        $result = $this->service->filterOrders(null, null, null, null);
 
         $this->assertCount(3, $result);
     }
@@ -112,7 +115,7 @@ class OrderProcessingServiceTest extends TestCase
         CustomerOrder::factory()->create(['order_status' => OrderStatus::Pending]);
         CustomerOrder::factory()->create(['order_status' => OrderStatus::Processing]);
 
-        $result = $this->service->filterOrders(OrderStatus::Pending, null, null);
+        $result = $this->service->filterOrders(null, OrderStatus::Pending, null, null);
 
         $this->assertCount(1, $result);
         $this->assertEquals(OrderStatus::Pending, $result->first()->order_status);
@@ -125,7 +128,7 @@ class OrderProcessingServiceTest extends TestCase
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(10)]);
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(3)]);
 
-        $result = $this->service->filterOrders(null, now()->subDays(5), now());
+        $result = $this->service->filterOrders(null, null, now()->subDays(5), now());
 
         $this->assertCount(1, $result);
     }
@@ -137,7 +140,7 @@ class OrderProcessingServiceTest extends TestCase
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(10)]);
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(3)]);
 
-        $result = $this->service->filterOrders(null, now()->subDays(5), null);
+        $result = $this->service->filterOrders(null, null, now()->subDays(5), null);
 
         $this->assertCount(1, $result);
     }
@@ -149,7 +152,7 @@ class OrderProcessingServiceTest extends TestCase
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(10)]);
         CustomerOrder::factory()->create(['order_creation_timestamp' => now()->subDays(3)]);
 
-        $result = $this->service->filterOrders(null, null, now()->subDays(5));
+        $result = $this->service->filterOrders(null, null, null, now()->subDays(5));
 
         $this->assertCount(1, $result);
     }
@@ -171,7 +174,7 @@ class OrderProcessingServiceTest extends TestCase
             'order_creation_timestamp' => now()->subDays(10),
         ]);
 
-        $result = $this->service->filterOrders(OrderStatus::Pending, now()->subDays(5), now());
+        $result = $this->service->filterOrders(null, OrderStatus::Pending, now()->subDays(5), now());
 
         $this->assertCount(1, $result);
         $this->assertEquals(OrderStatus::Pending, $result->first()->order_status);

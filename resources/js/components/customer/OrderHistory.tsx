@@ -11,6 +11,7 @@ type OrderItem = {
   design_snapshot: string;
   preview_image_reference: string | null;
   shirt_color_label?: string | null;
+  size_label?: string | null;
   print_sides_label?: string | null;
 };
 
@@ -59,8 +60,8 @@ export default function OrderHistory() {
   };
 
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5">
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">Order History</h2>
+    <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
+      <h2 className="mb-4 text-xl font-semibold text-gray-900 sm:text-2xl">Order History</h2>
 
       {orders.length === 0 ? (
         <div className="py-10 text-center">
@@ -74,7 +75,7 @@ export default function OrderHistory() {
               key={order.order_id}
               className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
             >
-              <div className="border-b border-gray-200 px-4 py-3 sm:px-5">
+              <div className="border-b border-gray-200 px-4 py-3 sm:px-5 md:px-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="text-base font-semibold text-gray-900">
@@ -95,13 +96,65 @@ export default function OrderHistory() {
                 </div>
               </div>
 
-              <div className="px-4 py-4 sm:px-5">
+              <div className="px-4 py-4 sm:px-5 md:px-6">
                 <div className="mb-4">
                   <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Items Ordered
                   </h4>
 
-                  <div className="overflow-x-auto">
+                  <div className="space-y-3 md:hidden">
+                    {order.items.map((item) => (
+                      <div
+                        key={item.order_item_id}
+                        className="rounded-md border border-gray-200 bg-gray-50 p-3"
+                      >
+                        <div className="mb-3">
+                          <p className="text-sm font-medium text-gray-900 wrap-break-word">
+                            {item.product_name}
+                          </p>
+
+                          {(item.shirt_color_label || item.print_sides_label || item.size_label) && (
+                            <div className="mt-1 space-y-1 text-xs text-gray-500">
+                              {item.shirt_color_label && (
+                                <p className="wrap-break-word">Shirt Color: {item.shirt_color_label}</p>
+                              )}
+
+                              {item.size_label && (
+                                <p className="wrap-break-word">Size: {item.size_label}</p>
+                              )}
+
+                              {item.print_sides_label && (
+                                <p className="wrap-break-word">Print Sides: {item.print_sides_label}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <dl className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between gap-4">
+                            <dt className="text-gray-600">Unit Price</dt>
+                            <dd className="font-medium text-gray-900">€{formatMoney(item.unit_price)}</dd>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-4">
+                            <dt className="text-gray-600">Quantity</dt>
+                            <dd className="text-gray-900">{item.quantity}</dd>
+                          </div>
+
+                          <div className="border-t border-gray-200 pt-2">
+                            <div className="flex items-center justify-between gap-4">
+                              <dt className="font-medium text-gray-700">Subtotal</dt>
+                              <dd className="font-semibold text-gray-900">
+                                €{formatMoney(item.line_subtotal)}
+                              </dd>
+                            </div>
+                          </div>
+                        </dl>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden overflow-x-auto md:block">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr className="text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
@@ -117,16 +170,20 @@ export default function OrderHistory() {
                           <tr key={item.order_item_id}>
                             <td className="py-2.5 pr-4 text-sm text-gray-900">
                               <div>
-                                <p>{item.product_name}</p>
+                                <p className="wrap-break-word">{item.product_name}</p>
 
-                                {(item.shirt_color_label || item.print_sides_label) && (
+                                {(item.shirt_color_label || item.print_sides_label || item.size_label) && (
                                   <div className="mt-1 space-y-1 text-xs text-gray-500">
                                     {item.shirt_color_label && (
-                                      <p>Shirt Color: {item.shirt_color_label}</p>
+                                      <p className="wrap-break-word">Shirt Color: {item.shirt_color_label}</p>
+                                    )}
+
+                                    {item.size_label && (
+                                      <p className="wrap-break-word">Size: {item.size_label}</p>
                                     )}
 
                                     {item.print_sides_label && (
-                                      <p>Print Sides: {item.print_sides_label}</p>
+                                      <p className="wrap-break-word">Print Sides: {item.print_sides_label}</p>
                                     )}
                                   </div>
                                 )}
@@ -153,7 +210,7 @@ export default function OrderHistory() {
                     Order Summary
                   </h4>
 
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 sm:p-4">
                     <dl className="space-y-2 text-sm text-gray-700">
                       <div className="flex items-center justify-between gap-4">
                         <dt>Net Amount</dt>

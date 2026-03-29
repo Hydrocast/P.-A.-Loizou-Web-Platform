@@ -2,7 +2,6 @@
 
 namespace Tests\Unit\Services;
 
-use PHPUnit\Framework\Attributes\Test;
 use App\Models\Customer;
 use App\Models\CustomizablePrintProduct;
 use App\Models\OrderItem;
@@ -10,6 +9,7 @@ use App\Models\SavedDesign;
 use App\Services\DesignService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -28,7 +28,7 @@ class DesignServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new DesignService();
+        $this->service = new DesignService;
     }
 
     // -------------------------------------------------------------------------
@@ -52,7 +52,7 @@ class DesignServiceTest extends TestCase
     public function get_saved_designs_returns_empty_when_none_exist(): void
     {
         $customer = Customer::factory()->create();
-        $designs  = $this->service->getSavedDesigns($customer->customer_id);
+        $designs = $this->service->getSavedDesigns($customer->customer_id);
         $this->assertCount(0, $designs);
     }
 
@@ -61,7 +61,7 @@ class DesignServiceTest extends TestCase
     public function get_saved_designs_returns_only_designs_belonging_to_customer(): void
     {
         $customer = Customer::factory()->create();
-        $other    = Customer::factory()->create();
+        $other = Customer::factory()->create();
         SavedDesign::factory()->create(['customer_id' => $customer->customer_id]);
         SavedDesign::factory()->create(['customer_id' => $other->customer_id]);
 
@@ -75,12 +75,12 @@ class DesignServiceTest extends TestCase
     public function get_saved_designs_returns_designs_ordered_by_date_created_descending(): void
     {
         $customer = Customer::factory()->create();
-        $older    = SavedDesign::factory()->create([
-            'customer_id'  => $customer->customer_id,
+        $older = SavedDesign::factory()->create([
+            'customer_id' => $customer->customer_id,
             'date_created' => now()->subDays(5),
         ]);
-        $newer    = SavedDesign::factory()->create([
-            'customer_id'  => $customer->customer_id,
+        $newer = SavedDesign::factory()->create([
+            'customer_id' => $customer->customer_id,
             'date_created' => now(),
         ]);
 
@@ -88,6 +88,32 @@ class DesignServiceTest extends TestCase
 
         $this->assertEquals($newer->design_id, $designs->first()->design_id);
         $this->assertEquals($older->design_id, $designs->last()->design_id);
+    }
+
+    #[Test]
+    /** Adds customization labels (shirt color, print sides, size) to each saved design. */
+    public function get_saved_designs_enriches_customization_labels_including_size(): void
+    {
+        $customer = Customer::factory()->create();
+
+        SavedDesign::factory()->create([
+            'customer_id' => $customer->customer_id,
+            'design_data' => json_encode([
+                'schema_version' => 1,
+                'canvas_json' => '{"version":"5.3.0","objects":[]}',
+                'customization' => [
+                    'shirt_color' => ['label' => 'Black'],
+                    'print_sides' => ['label' => 'Front + Back'],
+                    'size' => ['label' => 'XL'],
+                ],
+            ], JSON_UNESCAPED_SLASHES),
+        ]);
+
+        $designs = $this->service->getSavedDesigns($customer->customer_id);
+
+        $this->assertSame('Black', $designs->first()?->shirt_color_label);
+        $this->assertSame('Front + Back', $designs->first()?->print_sides_label);
+        $this->assertSame('XL', $designs->first()?->size_label);
     }
 
     // -------------------------------------------------------------------------
@@ -99,14 +125,15 @@ class DesignServiceTest extends TestCase
     public function save_design_persists_new_design(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
 
         $design = $this->service->saveDesign(
             $customer->customer_id,
             $product->product_id,
             'My Design',
             '{"version":"5.3.0","objects":[]}',
-            null
+            null,
+            null,
         );
 
         $this->assertInstanceOf(SavedDesign::class, $design);
@@ -117,12 +144,12 @@ class DesignServiceTest extends TestCase
     /** Design data is stored verbatim. */
     public function save_design_stores_design_data_verbatim(): void
     {
-        $customer   = Customer::factory()->create();
-        $product    = CustomizablePrintProduct::factory()->create();
+        $customer = Customer::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
         $fabricJson = '{"version":"5.3.0","objects":[{"type":"textbox","text":"Hello"}]}';
 
         $design = $this->service->saveDesign(
-            $customer->customer_id, $product->product_id, 'My Design', $fabricJson, null
+            $customer->customer_id, $product->product_id, 'My Design', $fabricJson, null, null
         );
 
         $this->assertEquals($fabricJson, $design->design_data);
@@ -133,10 +160,10 @@ class DesignServiceTest extends TestCase
     public function save_design_stores_preview_image_reference(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
 
         $design = $this->service->saveDesign(
-            $customer->customer_id, $product->product_id, 'My Design', '{}', 'previews/abc.png'
+            $customer->customer_id, $product->product_id, 'My Design', '{}', 'previews/abc.png', null
         );
 
         $this->assertEquals('previews/abc.png', $design->preview_image_reference);
@@ -147,13 +174,27 @@ class DesignServiceTest extends TestCase
     public function save_design_accepts_null_preview_image_reference(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
 
         $design = $this->service->saveDesign(
-            $customer->customer_id, $product->product_id, 'My Design', '{}', null
+            $customer->customer_id, $product->product_id, 'My Design', '{}', null, null
         );
 
         $this->assertNull($design->preview_image_reference);
+    }
+
+    #[Test]
+    /** Print file reference is stored when provided. */
+    public function save_design_stores_print_file_reference(): void
+    {
+        $customer = Customer::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
+
+        $design = $this->service->saveDesign(
+            $customer->customer_id, $product->product_id, 'My Design', '{}', null, 'prints/abc.png'
+        );
+
+        $this->assertEquals('prints/abc.png', $design->print_file_reference);
     }
 
     #[Test]
@@ -162,7 +203,7 @@ class DesignServiceTest extends TestCase
     {
         $customer = Customer::factory()->create();
         $this->expectException(ValidationException::class);
-        $this->service->saveDesign($customer->customer_id, 99999, 'Design', '{}', null);
+        $this->service->saveDesign($customer->customer_id, 99999, 'Design', '{}', null, null);
     }
 
     #[Test]
@@ -170,10 +211,10 @@ class DesignServiceTest extends TestCase
     public function save_design_throws_when_product_is_inactive(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->inactive()->create();
+        $product = CustomizablePrintProduct::factory()->inactive()->create();
 
         $this->expectException(ValidationException::class);
-        $this->service->saveDesign($customer->customer_id, $product->product_id, 'Design', '{}', null);
+        $this->service->saveDesign($customer->customer_id, $product->product_id, 'Design', '{}', null, null);
     }
 
     // Design name boundaries --------------------------------------------------
@@ -183,9 +224,9 @@ class DesignServiceTest extends TestCase
     public function save_design_throws_when_design_name_is_empty(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
         $this->expectException(ValidationException::class);
-        $this->service->saveDesign($customer->customer_id, $product->product_id, '', '{}', null);
+        $this->service->saveDesign($customer->customer_id, $product->product_id, '', '{}', null, null);
     }
 
     #[Test]
@@ -193,8 +234,8 @@ class DesignServiceTest extends TestCase
     public function save_design_accepts_design_name_of_one_character(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
-        $design   = $this->service->saveDesign($customer->customer_id, $product->product_id, 'A', '{}', null);
+        $product = CustomizablePrintProduct::factory()->create();
+        $design = $this->service->saveDesign($customer->customer_id, $product->product_id, 'A', '{}', null, null);
         $this->assertEquals('A', $design->design_name);
     }
 
@@ -203,9 +244,9 @@ class DesignServiceTest extends TestCase
     public function save_design_accepts_design_name_of_fifty_characters(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
-        $name     = str_repeat('a', 50);
-        $design   = $this->service->saveDesign($customer->customer_id, $product->product_id, $name, '{}', null);
+        $product = CustomizablePrintProduct::factory()->create();
+        $name = str_repeat('a', 50);
+        $design = $this->service->saveDesign($customer->customer_id, $product->product_id, $name, '{}', null, null);
         $this->assertEquals($name, $design->design_name);
     }
 
@@ -214,9 +255,9 @@ class DesignServiceTest extends TestCase
     public function save_design_accepts_design_name_of_one_hundred_characters(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
-        $name     = str_repeat('a', 100);
-        $design   = $this->service->saveDesign($customer->customer_id, $product->product_id, $name, '{}', null);
+        $product = CustomizablePrintProduct::factory()->create();
+        $name = str_repeat('a', 100);
+        $design = $this->service->saveDesign($customer->customer_id, $product->product_id, $name, '{}', null, null);
         $this->assertEquals($name, $design->design_name);
     }
 
@@ -225,10 +266,10 @@ class DesignServiceTest extends TestCase
     public function save_design_throws_when_design_name_exceeds_one_hundred_characters(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->create();
+        $product = CustomizablePrintProduct::factory()->create();
         $this->expectException(ValidationException::class);
         $this->service->saveDesign(
-            $customer->customer_id, $product->product_id, str_repeat('a', 101), '{}', null
+            $customer->customer_id, $product->product_id, str_repeat('a', 101), '{}', null, null
         );
     }
 
@@ -241,7 +282,7 @@ class DesignServiceTest extends TestCase
     public function load_design_returns_design_for_owner(): void
     {
         $customer = Customer::factory()->create();
-        $design   = SavedDesign::factory()->create(['customer_id' => $customer->customer_id]);
+        $design = SavedDesign::factory()->create(['customer_id' => $customer->customer_id]);
 
         $result = $this->service->loadDesign($customer->customer_id, $design->design_id);
 
@@ -252,9 +293,9 @@ class DesignServiceTest extends TestCase
     /** Throws ValidationException when the design belongs to a different customer. */
     public function load_design_throws_when_design_belongs_to_different_customer(): void
     {
-        $owner    = Customer::factory()->create();
+        $owner = Customer::factory()->create();
         $intruder = Customer::factory()->create();
-        $design   = SavedDesign::factory()->create(['customer_id' => $owner->customer_id]);
+        $design = SavedDesign::factory()->create(['customer_id' => $owner->customer_id]);
 
         $this->expectException(ValidationException::class);
         $this->service->loadDesign($intruder->customer_id, $design->design_id);
@@ -274,10 +315,10 @@ class DesignServiceTest extends TestCase
     public function load_design_throws_when_product_is_no_longer_available(): void
     {
         $customer = Customer::factory()->create();
-        $product  = CustomizablePrintProduct::factory()->inactive()->create();
-        $design   = SavedDesign::factory()->create([
+        $product = CustomizablePrintProduct::factory()->inactive()->create();
+        $design = SavedDesign::factory()->create([
             'customer_id' => $customer->customer_id,
-            'product_id'  => $product->product_id,
+            'product_id' => $product->product_id,
         ]);
 
         $this->expectException(ValidationException::class);
@@ -293,7 +334,7 @@ class DesignServiceTest extends TestCase
     public function create_cart_snapshot_returns_design_data_verbatim(): void
     {
         $fabricJson = '{"version":"5.3.0","objects":[{"type":"rect"}]}';
-        $snapshot   = $this->service->createCartSnapshot($fabricJson);
+        $snapshot = $this->service->createCartSnapshot($fabricJson);
         $this->assertEquals($fabricJson, $snapshot);
     }
 
@@ -314,7 +355,7 @@ class DesignServiceTest extends TestCase
     public function export_print_reference_returns_order_item_for_valid_id(): void
     {
         $orderItem = OrderItem::factory()->create();
-        $result    = $this->service->exportPrintReference($orderItem->order_item_id);
+        $result = $this->service->exportPrintReference($orderItem->order_item_id);
         $this->assertInstanceOf(OrderItem::class, $result);
         $this->assertEquals($orderItem->order_item_id, $result->order_item_id);
     }

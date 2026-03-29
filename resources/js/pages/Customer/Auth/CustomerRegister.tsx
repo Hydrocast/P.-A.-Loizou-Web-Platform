@@ -1,7 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react'
 import { Eye, EyeOff } from 'lucide-react'
-import type { FormEventHandler } from 'react'
 import { useState } from 'react'
+import type { FormEventHandler } from 'react'
 
 type PageProps = {
   flash?: {
@@ -32,18 +32,18 @@ export default function CustomerRegister() {
     <>
       <Head title="Create Account" />
 
-      <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
+      <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-14 lg:px-8 lg:py-16">
+        <div className="rounded-lg bg-white p-5 shadow-md sm:p-6 md:p-8">
+          <h1 className="mb-5 text-center text-xl font-bold sm:text-2xl md:mb-6">Create Account</h1>
 
           {flash?.success && (
-            <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md text-sm">
+            <div className="mb-4 rounded-md bg-green-100 px-4 py-3 text-sm text-green-800">
               {flash.success}
             </div>
           )}
 
           {flash?.error && (
-            <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">
+            <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-800">
               {flash.error}
             </div>
           )}
@@ -89,7 +89,7 @@ export default function CustomerRegister() {
               </label>
 
               <div className="flex rounded-md shadow-sm">
-                <div className="inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-gray-600 text-sm font-medium">
+                <div className="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600">
                   +357
                 </div>
 
@@ -131,7 +131,7 @@ export default function CustomerRegister() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 cursor-pointer hover:text-gray-700"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
                 >
@@ -166,7 +166,7 @@ export default function CustomerRegister() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 cursor-pointer hover:text-gray-700"
                   aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
                   aria-pressed={showConfirmPassword}
                 >

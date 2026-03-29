@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\Schema;
  * The preview_image_reference stores the cloud URL of a thumbnail image
  * displayed in the customer's My Designs grid.
  *
+ * The print_file_reference stores the print-ready image reference generated
+ * at save time so saved designs can preserve the same staff production asset
+ * later transferred into cart items and order items.
+ *
  * Saved designs are automatically deleted when the owning customer account
  * is deleted. However, the restrict constraint on product_id prevents the
  * deletion of a customizable product while customers still have saved designs
@@ -30,18 +34,19 @@ return new class extends Migration
 
             $table->unsignedInteger('customer_id');
             $table->foreign('customer_id')
-                  ->references('customer_id')
-                  ->on('customers')
-                  ->onDelete('cascade');
+                ->references('customer_id')
+                ->on('customers')
+                ->onDelete('cascade');
 
             $table->unsignedInteger('product_id');
             $table->foreign('product_id')
-                  ->references('product_id')
-                  ->on('customizable_print_products')
-                  ->onDelete('restrict');
+                ->references('product_id')
+                ->on('customizable_print_products')
+                ->onDelete('restrict');
 
             $table->longText('design_data');
             $table->longText('preview_image_reference')->nullable();
+            $table->longText('print_file_reference')->nullable();
             $table->dateTime('date_created');
 
             $table->index('customer_id', 'idx_saved_design_customer');

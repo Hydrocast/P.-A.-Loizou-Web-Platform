@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Models;
 
-use PHPUnit\Framework\Attributes\Test;
 use App\Models\Customer;
 use App\Models\CustomizablePrintProduct;
 use App\Models\SavedDesign;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
@@ -37,7 +37,7 @@ class SavedDesignTest extends TestCase
     /** Model uses the saved_designs table. */
     public function model_uses_saved_designs_table(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertSame('saved_designs', $design->getTable());
     }
@@ -46,7 +46,7 @@ class SavedDesignTest extends TestCase
     /** Primary key is design_id. */
     public function primary_key_is_design_id(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertSame('design_id', $design->getKeyName());
     }
@@ -55,7 +55,7 @@ class SavedDesignTest extends TestCase
     /** Primary key type is integer. */
     public function primary_key_type_is_integer(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertSame('int', $design->getKeyType());
     }
@@ -64,7 +64,7 @@ class SavedDesignTest extends TestCase
     /** Primary key is auto-incrementing. */
     public function primary_key_is_auto_incrementing(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertTrue($design->incrementing);
     }
@@ -73,7 +73,7 @@ class SavedDesignTest extends TestCase
     /** Timestamps are disabled. */
     public function timestamps_are_disabled(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertFalse($design->timestamps);
     }
@@ -82,7 +82,7 @@ class SavedDesignTest extends TestCase
     /** Fillable array contains expected fields. */
     public function fillable_contains_expected_fields(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
         $fillable = $design->getFillable();
 
         $this->assertContains('design_name', $fillable);
@@ -90,6 +90,7 @@ class SavedDesignTest extends TestCase
         $this->assertContains('product_id', $fillable);
         $this->assertContains('design_data', $fillable);
         $this->assertContains('preview_image_reference', $fillable);
+        $this->assertContains('print_file_reference', $fillable);
         $this->assertContains('date_created', $fillable);
     }
 
@@ -97,7 +98,7 @@ class SavedDesignTest extends TestCase
     /** date_created is cast to datetime. */
     public function date_created_cast_is_configured(): void
     {
-        $design = new SavedDesign();
+        $design = new SavedDesign;
 
         $this->assertSame('datetime', $design->getCasts()['date_created']);
     }
@@ -110,7 +111,7 @@ class SavedDesignTest extends TestCase
     /** customer() returns a BelongsTo relation. */
     public function customer_returns_belongs_to_relation(): void
     {
-        $relation = (new SavedDesign())->customer();
+        $relation = (new SavedDesign)->customer();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -119,7 +120,7 @@ class SavedDesignTest extends TestCase
     /** customer() uses customer_id as foreign key. */
     public function customer_uses_customer_id_as_foreign_key(): void
     {
-        $relation = (new SavedDesign())->customer();
+        $relation = (new SavedDesign)->customer();
 
         $this->assertSame('customer_id', $relation->getForeignKeyName());
     }
@@ -128,7 +129,7 @@ class SavedDesignTest extends TestCase
     /** customer() relates to Customer model. */
     public function customer_relates_to_customer_model(): void
     {
-        $relation = (new SavedDesign())->customer();
+        $relation = (new SavedDesign)->customer();
 
         $this->assertInstanceOf(Customer::class, $relation->getRelated());
     }
@@ -141,7 +142,7 @@ class SavedDesignTest extends TestCase
     /** product() returns a BelongsTo relation. */
     public function product_returns_belongs_to_relation(): void
     {
-        $relation = (new SavedDesign())->product();
+        $relation = (new SavedDesign)->product();
 
         $this->assertInstanceOf(BelongsTo::class, $relation);
     }
@@ -150,7 +151,7 @@ class SavedDesignTest extends TestCase
     /** product() uses product_id as foreign key. */
     public function product_uses_product_id_as_foreign_key(): void
     {
-        $relation = (new SavedDesign())->product();
+        $relation = (new SavedDesign)->product();
 
         $this->assertSame('product_id', $relation->getForeignKeyName());
     }
@@ -159,7 +160,7 @@ class SavedDesignTest extends TestCase
     /** product() relates to CustomizablePrintProduct model. */
     public function product_relates_to_customizable_print_product_model(): void
     {
-        $relation = (new SavedDesign())->product();
+        $relation = (new SavedDesign)->product();
 
         $this->assertInstanceOf(CustomizablePrintProduct::class, $relation->getRelated());
     }

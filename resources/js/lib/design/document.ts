@@ -7,6 +7,10 @@ type CustomizationMetadata = {
     value?: string | null;
     label?: string | null;
   };
+  size?: {
+    value?: string | null;
+    label?: string | null;
+  };
 };
 
 type StoredDesignEnvelope = {
@@ -76,6 +80,13 @@ export function extractShirtColorLabel(storedValue?: string | null): string | nu
 export function extractPrintSidesLabel(storedValue?: string | null): string | null {
   const customization = extractCustomization(storedValue);
   const label = customization.print_sides?.label;
+
+  return typeof label === 'string' && label.trim() !== '' ? label : null;
+}
+
+export function extractSizeLabel(storedValue?: string | null): string | null {
+  const customization = extractCustomization(storedValue);
+  const label = customization.size?.label;
 
   return typeof label === 'string' && label.trim() !== '' ? label : null;
 }

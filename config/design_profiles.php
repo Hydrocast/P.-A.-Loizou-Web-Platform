@@ -25,6 +25,222 @@
  * - default_color_key: default selected colour when none is explicitly chosen
  * - colors: selectable colour options shown in Product Detail and Design Workspace
  */
+$poloColors = [
+    [
+        'id' => 'white',
+        'label' => 'White',
+        'swatch_hex' => '#F5F5F5',
+        'mockup_image_url' => '/images/designer/polos/white.webp',
+        'thumbnail_image_url' => '/images/designer/polos/white.webp',
+    ],
+    [
+        'id' => 'sand',
+        'label' => 'Sand',
+        'swatch_hex' => '#D6C6A5',
+        'mockup_image_url' => '/images/designer/polos/sand.webp',
+        'thumbnail_image_url' => '/images/designer/polos/sand.webp',
+    ],
+    [
+        'id' => 'sky-blue',
+        'label' => 'Sky Blue',
+        'swatch_hex' => '#93C5FD',
+        'mockup_image_url' => '/images/designer/polos/sky-blue.webp',
+        'thumbnail_image_url' => '/images/designer/polos/sky-blue.webp',
+    ],
+    [
+        'id' => 'royal-blue',
+        'label' => 'Royal Blue',
+        'swatch_hex' => '#2563EB',
+        'mockup_image_url' => '/images/designer/polos/royal-blue.webp',
+        'thumbnail_image_url' => '/images/designer/polos/royal-blue.webp',
+    ],
+    [
+        'id' => 'atoll',
+        'label' => 'Atoll',
+        'swatch_hex' => '#22B8CF',
+        'mockup_image_url' => '/images/designer/polos/atoll.webp',
+        'thumbnail_image_url' => '/images/designer/polos/atoll.webp',
+    ],
+    [
+        'id' => 'real-turquoise',
+        'label' => 'Real Turquoise',
+        'swatch_hex' => '#14B8A6',
+        'mockup_image_url' => '/images/designer/polos/real-turquoise.webp',
+        'thumbnail_image_url' => '/images/designer/polos/real-turquoise.webp',
+    ],
+    [
+        'id' => 'navy',
+        'label' => 'Navy',
+        'swatch_hex' => '#1E3A8A',
+        'mockup_image_url' => '/images/designer/polos/navy.webp',
+        'thumbnail_image_url' => '/images/designer/polos/navy.webp',
+    ],
+    [
+        'id' => 'black',
+        'label' => 'Black',
+        'swatch_hex' => '#1F2937',
+        'mockup_image_url' => '/images/designer/polos/black.webp',
+        'thumbnail_image_url' => '/images/designer/polos/black.webp',
+    ],
+    [
+        'id' => 'dark-grey',
+        'label' => 'Dark Grey',
+        'swatch_hex' => '#6B7280',
+        'mockup_image_url' => '/images/designer/polos/dark-grey.webp',
+        'thumbnail_image_url' => '/images/designer/polos/dark-grey.webp',
+    ],
+    [
+        'id' => 'heather-grey',
+        'label' => 'Heather Grey',
+        'swatch_hex' => '#9CA3AF',
+        'mockup_image_url' => '/images/designer/polos/heather-grey.webp',
+        'thumbnail_image_url' => '/images/designer/polos/heather-grey.webp',
+    ],
+    [
+        'id' => 'bottle-green',
+        'label' => 'Bottle Green',
+        'swatch_hex' => '#166534',
+        'mockup_image_url' => '/images/designer/polos/bottle-green.webp',
+        'thumbnail_image_url' => '/images/designer/polos/bottle-green.webp',
+    ],
+    [
+        'id' => 'real-green',
+        'label' => 'Real Green',
+        'swatch_hex' => '#15803D',
+        'mockup_image_url' => '/images/designer/polos/real-green.webp',
+        'thumbnail_image_url' => '/images/designer/polos/real-green.webp',
+    ],
+    [
+        'id' => 'kelly-green',
+        'label' => 'Kelly Green',
+        'swatch_hex' => '#22C55E',
+        'mockup_image_url' => '/images/designer/polos/kelly-green.webp',
+        'thumbnail_image_url' => '/images/designer/polos/kelly-green.webp',
+    ],
+    [
+        'id' => 'pistachio',
+        'label' => 'Pistachio',
+        'swatch_hex' => '#9FD38C',
+        'mockup_image_url' => '/images/designer/polos/pistachio.webp',
+        'thumbnail_image_url' => '/images/designer/polos/pistachio.webp',
+    ],
+    [
+        'id' => 'khaki',
+        'label' => 'Khaki',
+        'swatch_hex' => '#B8A47A',
+        'mockup_image_url' => '/images/designer/polos/khaki.webp',
+        'thumbnail_image_url' => '/images/designer/polos/khaki.webp',
+    ],
+    [
+        'id' => 'brown',
+        'label' => 'Brown',
+        'swatch_hex' => '#6B4226',
+        'mockup_image_url' => '/images/designer/polos/brown.webp',
+        'thumbnail_image_url' => '/images/designer/polos/brown.webp',
+    ],
+    [
+        'id' => 'burgundy',
+        'label' => 'Burgundy',
+        'swatch_hex' => '#7F1D1D',
+        'mockup_image_url' => '/images/designer/polos/burgundy.webp',
+        'thumbnail_image_url' => '/images/designer/polos/burgundy.webp',
+    ],
+    [
+        'id' => 'red',
+        'label' => 'Red',
+        'swatch_hex' => '#DC2626',
+        'mockup_image_url' => '/images/designer/polos/red.webp',
+        'thumbnail_image_url' => '/images/designer/polos/red.webp',
+    ],
+    [
+        'id' => 'pumpkin-orange',
+        'label' => 'Pumpkin Orange',
+        'swatch_hex' => '#EA580C',
+        'mockup_image_url' => '/images/designer/polos/pumpkin-orange.webp',
+        'thumbnail_image_url' => '/images/designer/polos/pumpkin-orange.webp',
+    ],
+    [
+        'id' => 'gold',
+        'label' => 'Gold',
+        'swatch_hex' => '#EAB308',
+        'mockup_image_url' => '/images/designer/polos/gold.webp',
+        'thumbnail_image_url' => '/images/designer/polos/gold.webp',
+    ],
+    [
+        'id' => 'pink-sixties',
+        'label' => 'Pink Sixties',
+        'swatch_hex' => '#F3C1D8',
+        'mockup_image_url' => '/images/designer/polos/pink-sixties.webp',
+        'thumbnail_image_url' => '/images/designer/polos/pink-sixties.webp',
+    ],
+    [
+        'id' => 'fuchsia',
+        'label' => 'Fuchsia',
+        'swatch_hex' => '#EC4899',
+        'mockup_image_url' => '/images/designer/polos/fuchsia.webp',
+        'thumbnail_image_url' => '/images/designer/polos/fuchsia.webp',
+    ],
+    [
+        'id' => 'purple',
+        'label' => 'Purple',
+        'swatch_hex' => '#7E22CE',
+        'mockup_image_url' => '/images/designer/polos/purple.webp',
+        'thumbnail_image_url' => '/images/designer/polos/purple.webp',
+    ],
+];
+
+$hoodieColors = [
+    [
+        'id' => 'white',
+        'label' => 'White',
+        'swatch_hex' => '#F5F5F5',
+        'mockup_image_url' => '/images/designer/hoodies/white.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/white.webp',
+    ],
+    [
+        'id' => 'heather-grey',
+        'label' => 'Heather Grey',
+        'swatch_hex' => '#9CA3AF',
+        'mockup_image_url' => '/images/designer/hoodies/heather-grey.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/heather-grey.webp',
+    ],
+    [
+        'id' => 'black',
+        'label' => 'Black',
+        'swatch_hex' => '#1F2937',
+        'mockup_image_url' => '/images/designer/hoodies/black.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/black.webp',
+    ],
+    [
+        'id' => 'navy',
+        'label' => 'Navy',
+        'swatch_hex' => '#1E3A8A',
+        'mockup_image_url' => '/images/designer/hoodies/navy.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/navy.webp',
+    ],
+    [
+        'id' => 'royal-blue',
+        'label' => 'Royal Blue',
+        'swatch_hex' => '#2563EB',
+        'mockup_image_url' => '/images/designer/hoodies/royal-blue.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/royal-blue.webp',
+    ],
+    [
+        'id' => 'light-blue',
+        'label' => 'Light Blue',
+        'swatch_hex' => '#7DD3FC',
+        'mockup_image_url' => '/images/designer/hoodies/light-blue.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/light-blue.webp',
+    ],
+    [
+        'id' => 'red',
+        'label' => 'Red',
+        'swatch_hex' => '#DC2626',
+        'mockup_image_url' => '/images/designer/hoodies/red.webp',
+        'thumbnail_image_url' => '/images/designer/hoodies/red.webp',
+    ],
+];
+
 return [
 
     'tshirt-classic' => [
@@ -33,12 +249,6 @@ return [
             'canvas_width' => 1200,
             'canvas_height' => 1400,
             'background_image' => null,
-            'print_area' => [
-                'left' => 0,
-                'top' => 0,
-                'width' => 1200,
-                'height' => 1400,
-            ],
         ],
         'workspace_options' => [
             'print_sides' => [
@@ -69,6 +279,20 @@ return [
                 ['XXL', '62 cm', '78 cm'],
                 ['3XL', '65 cm', '81 cm'],
                 ['4XL', '70 cm', '83 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => 'M',
+            'choices' => [
+                ['value' => 'XS', 'label' => 'XS'],
+                ['value' => 'S', 'label' => 'S'],
+                ['value' => 'M', 'label' => 'M'],
+                ['value' => 'L', 'label' => 'L'],
+                ['value' => 'XL', 'label' => 'XL'],
+                ['value' => 'XXL', 'label' => 'XXL'],
+                ['value' => '3XL', 'label' => '3XL'],
+                ['value' => '4XL', 'label' => '4XL'],
             ],
         ],
         'default_color_key' => 'white',
@@ -257,12 +481,6 @@ return [
             'canvas_width' => 1200,
             'canvas_height' => 1400,
             'background_image' => null,
-            'print_area' => [
-                'left' => 0,
-                'top' => 0,
-                'width' => 1200,
-                'height' => 1400,
-            ],
         ],
         'workspace_options' => [
             'print_sides' => [
@@ -291,6 +509,18 @@ return [
                 ['L', '50 cm', '64 cm'],
                 ['XL', '53 cm', '66 cm'],
                 ['XXL', '56 cm', '68 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => 'M',
+            'choices' => [
+                ['value' => 'XS', 'label' => 'XS'],
+                ['value' => 'S', 'label' => 'S'],
+                ['value' => 'M', 'label' => 'M'],
+                ['value' => 'L', 'label' => 'L'],
+                ['value' => 'XL', 'label' => 'XL'],
+                ['value' => 'XXL', 'label' => 'XXL'],
             ],
         ],
         'default_color_key' => 'white',
@@ -479,12 +709,6 @@ return [
             'canvas_width' => 1200,
             'canvas_height' => 1400,
             'background_image' => null,
-            'print_area' => [
-                'left' => 0,
-                'top' => 0,
-                'width' => 1200,
-                'height' => 1400,
-            ],
         ],
         'workspace_options' => [
             'print_sides' => [
@@ -513,6 +737,18 @@ return [
                 ['7/8', '36 cm', '51 cm'],
                 ['9/11', '39 cm', '54 cm'],
                 ['12/14', '43 cm', '58 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => '5/6',
+            'choices' => [
+                ['value' => '1/2', 'label' => '1/2'],
+                ['value' => '3/4', 'label' => '3/4'],
+                ['value' => '5/6', 'label' => '5/6'],
+                ['value' => '7/8', 'label' => '7/8'],
+                ['value' => '9/11', 'label' => '9/11'],
+                ['value' => '12/14', 'label' => '12/14'],
             ],
         ],
         'default_color_key' => 'white',
@@ -693,6 +929,232 @@ return [
                 'thumbnail_image_url' => '/images/designer/tshirts/denim.webp',
             ],
         ],
+    ],
+
+    'polo-unisex' => [
+        'profile_name' => 'Polo Shirt',
+        'template_config' => [
+            'canvas_width' => 1200,
+            'canvas_height' => 1400,
+            'background_image' => null,
+            'print_area' => [
+                'left' => 24,
+                'top' => 30,
+                'width' => 40,
+                'height' => 50,
+            ],
+        ],
+        'workspace_options' => [
+            'print_sides' => [
+                'enabled' => true,
+                'default' => 'front_only',
+                'choices' => [
+                    [
+                        'value' => 'front_only',
+                        'label' => 'Front Side',
+                    ],
+                    [
+                        'value' => 'front_and_back',
+                        'label' => 'Both Sides (Front and Back)',
+                    ],
+                ],
+            ],
+        ],
+        'product_details' => [
+            'type' => 'size_guide',
+            'title' => 'Men Regular Fit Polo T-Shirts Size Chart',
+            'columns' => ['Size', 'Width', 'Length'],
+            'rows' => [
+                ['S', '50 cm', '70.5 cm'],
+                ['M', '53.5 cm', '73 cm'],
+                ['L', '57 cm', '75.5 cm'],
+                ['XL', '60.5 cm', '78 cm'],
+                ['XXL', '64 cm', '80.5 cm'],
+                ['3XL', '67.5 cm', '83 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => 'M',
+            'choices' => [
+                ['value' => 'S', 'label' => 'S'],
+                ['value' => 'M', 'label' => 'M'],
+                ['value' => 'L', 'label' => 'L'],
+                ['value' => 'XL', 'label' => 'XL'],
+                ['value' => 'XXL', 'label' => 'XXL'],
+                ['value' => '3XL', 'label' => '3XL'],
+            ],
+        ],
+        'default_color_key' => 'white',
+        'colors' => $poloColors,
+    ],
+
+    'polo-women-regular-fit' => [
+        'profile_name' => 'Polo Shirt',
+        'template_config' => [
+            'canvas_width' => 1200,
+            'canvas_height' => 1400,
+            'background_image' => null,
+            'print_area' => [
+                'left' => 24,
+                'top' => 30,
+                'width' => 40,
+                'height' => 50,
+            ],
+        ],
+        'workspace_options' => [
+            'print_sides' => [
+                'enabled' => true,
+                'default' => 'front_only',
+                'choices' => [
+                    [
+                        'value' => 'front_only',
+                        'label' => 'Front Side',
+                    ],
+                    [
+                        'value' => 'front_and_back',
+                        'label' => 'Both Sides (Front and Back)',
+                    ],
+                ],
+            ],
+        ],
+        'product_details' => [
+            'type' => 'size_guide',
+            'title' => 'Women Regular Fit Polo T-Shirts Size Chart',
+            'columns' => ['Size', 'Width', 'Length'],
+            'rows' => [
+                ['S', '43 cm', '58 cm'],
+                ['M', '45.5 cm', '59.5 cm'],
+                ['L', '48 cm', '61 cm'],
+                ['XL', '50.5 cm', '62.5 cm'],
+                ['XXL', '53 cm', '64 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => 'M',
+            'choices' => [
+                ['value' => 'S', 'label' => 'S'],
+                ['value' => 'M', 'label' => 'M'],
+                ['value' => 'L', 'label' => 'L'],
+                ['value' => 'XL', 'label' => 'XL'],
+                ['value' => 'XXL', 'label' => 'XXL'],
+            ],
+        ],
+        'default_color_key' => 'white',
+        'colors' => $poloColors,
+    ],
+
+    'polo-kids' => [
+        'profile_name' => 'Polo Shirt',
+        'template_config' => [
+            'canvas_width' => 1200,
+            'canvas_height' => 1400,
+            'background_image' => null,
+            'print_area' => [
+                'left' => 24,
+                'top' => 30,
+                'width' => 40,
+                'height' => 50,
+            ],
+        ],
+        'workspace_options' => [
+            'print_sides' => [
+                'enabled' => true,
+                'default' => 'front_only',
+                'choices' => [
+                    [
+                        'value' => 'front_only',
+                        'label' => 'Front Side',
+                    ],
+                    [
+                        'value' => 'front_and_back',
+                        'label' => 'Both Sides (Front and Back)',
+                    ],
+                ],
+            ],
+        ],
+        'product_details' => [
+            'type' => 'size_guide',
+            'title' => 'Kids Polo T-Shirts Size Chart',
+            'columns' => ['Size', 'Width', 'Length'],
+            'rows' => [
+                ['5/6', '37 cm', '49 cm'],
+                ['7/8', '40 cm', '52 cm'],
+                ['9/11', '43 cm', '57 cm'],
+                ['12/14', '46 cm', '62 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => '7/8',
+            'choices' => [
+                ['value' => '5/6', 'label' => '5/6'],
+                ['value' => '7/8', 'label' => '7/8'],
+                ['value' => '9/11', 'label' => '9/11'],
+                ['value' => '12/14', 'label' => '12/14'],
+            ],
+        ],
+        'default_color_key' => 'white',
+        'colors' => $poloColors,
+    ],
+
+    'hoodie-unisex' => [
+        'profile_name' => 'Unisex Hoodie',
+        'template_config' => [
+            'canvas_width' => 1200,
+            'canvas_height' => 1400,
+            'background_image' => null,
+        ],
+        'workspace_options' => [
+            'print_sides' => [
+                'enabled' => true,
+                'default' => 'front_only',
+                'choices' => [
+                    [
+                        'value' => 'front_only',
+                        'label' => 'Front Side',
+                    ],
+                    [
+                        'value' => 'front_and_back',
+                        'label' => 'Both Sides (Front and Back)',
+                    ],
+                ],
+            ],
+        ],
+        'product_details' => [
+            'type' => 'size_guide',
+            'title' => 'Unisex Hoodies Size Chart',
+            'columns' => ['Size', 'Width', 'Length'],
+            'rows' => [
+                ['XS', '48 cm', '63.5 cm'],
+                ['S', '51.5 cm', '65.5 cm'],
+                ['M', '55 cm', '67.5 cm'],
+                ['L', '58.5 cm', '69.5 cm'],
+                ['XL', '62 cm', '71.5 cm'],
+                ['XXL', '65.5 cm', '73.5 cm'],
+                ['3XL', '69 cm', '75.5 cm'],
+                ['4XL', '72.5 cm', '77.5 cm'],
+                ['5XL', '76 cm', '79.5 cm'],
+            ],
+        ],
+        'size_options' => [
+            'enabled' => true,
+            'default' => 'M',
+            'choices' => [
+                ['value' => 'XS', 'label' => 'XS'],
+                ['value' => 'S', 'label' => 'S'],
+                ['value' => 'M', 'label' => 'M'],
+                ['value' => 'L', 'label' => 'L'],
+                ['value' => 'XL', 'label' => 'XL'],
+                ['value' => 'XXL', 'label' => 'XXL'],
+                ['value' => '3XL', 'label' => '3XL'],
+                ['value' => '4XL', 'label' => '4XL'],
+                ['value' => '5XL', 'label' => '5XL'],
+            ],
+        ],
+        'default_color_key' => 'white',
+        'colors' => $hoodieColors,
     ],
 
 ];

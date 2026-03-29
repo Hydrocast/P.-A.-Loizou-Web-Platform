@@ -50,7 +50,7 @@ Route::middleware(['auth:customer', 'customer.active'])->group(function () {
         Route::get('/profile', [CustomerProfileController::class, 'show'])->name('profile');
         Route::put('/profile', [CustomerProfileController::class, 'update'])->name('profile.update');
 
-        Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders');
+        //Route::get('/orders', [OrderHistoryController::class, 'index'])->name('orders');
         Route::get('/designs', [DesignController::class, 'index'])->name('designs');
         Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist');
     });

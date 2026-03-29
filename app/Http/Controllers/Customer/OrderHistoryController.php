@@ -16,10 +16,10 @@ class OrderHistoryController extends Controller
         $customerId = Auth::guard('customer')->id();
 
         $orders = CustomerOrder::with([
-                'items' => function ($query) {
-                    $query->orderBy('order_item_id');
-                },
-            ])
+            'items' => function ($query) {
+                $query->orderBy('order_item_id');
+            },
+        ])
             ->where('customer_id', $customerId)
             ->orderByDesc('order_creation_timestamp')
             ->get();
@@ -45,6 +45,7 @@ class OrderHistoryController extends Controller
                             'design_snapshot' => $item->design_snapshot,
                             'preview_image_reference' => $item->preview_image_reference,
                             'shirt_color_label' => DesignDocument::extractShirtColorLabel($item->design_snapshot),
+                            'size_label' => DesignDocument::extractSizeLabel($item->design_snapshot),
                             'print_sides_label' => DesignDocument::extractPrintSidesLabel($item->design_snapshot),
                         ];
                     })->values(),

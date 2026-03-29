@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 interface ModalProps {
@@ -10,6 +11,22 @@ interface ModalProps {
 }
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscapeKey);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const sizeClasses = {
@@ -20,18 +37,19 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-xl shadow-2xl ${sizeClasses[size]} w-full max-h-[90vh] overflow-y-auto`}>
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center rounded-t-xl">
-          <h3 className="text-xl font-semibold text-purple-900">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4">
+      <div className={`w-full max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl ${sizeClasses[size]}`}>
+        <div className="sticky top-0 flex items-center justify-between rounded-t-xl border-b border-gray-200 bg-white px-4 py-3 sm:px-6 sm:py-4">
+          <h3 className="pr-3 text-lg font-semibold text-purple-900 sm:text-xl">{title}</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Close modal"
           >
-            <X className="w-6 h-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {children}
         </div>
       </div>
@@ -70,21 +88,21 @@ export function ConfirmDialog({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden">
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h3 className="text-xl font-semibold text-purple-900">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4">
+      <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4">
+          <h3 className="text-lg font-semibold text-purple-900 sm:text-xl">{title}</h3>
         </div>
 
-        <div className="p-6">
-          <div className="text-sm leading-7 text-gray-700">
+        <div className="p-4 sm:p-6">
+          <div className="text-sm leading-6 text-gray-700 sm:leading-7">
             {message}
           </div>
 
-          <div className="mt-6 flex gap-3 justify-end">
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors hover:bg-gray-50 sm:w-auto"
             >
               {cancelText}
             </button>
@@ -94,7 +112,7 @@ export function ConfirmDialog({
                 onConfirm();
                 onClose();
               }}
-              className={`px-6 py-2 text-white rounded-lg font-medium transition-colors cursor-pointer ${typeColors[type]}`}
+              className={`w-full cursor-pointer rounded-lg px-6 py-2 font-medium text-white transition-colors sm:w-auto ${typeColors[type]}`}
             >
               {confirmText}
             </button>

@@ -2,10 +2,10 @@
 
 use App\Enums\ProductVisibilityStatus;
 use App\Models\CustomizablePrintProduct;
-use Database\Seeders\CustomizableProductSeeder;
+use Database\Seeders\CustomizableUnisexTShirtSeeder;
 
-test('customizable product seeder creates the initial profile-backed product', function () {
-    $this->seed(CustomizableProductSeeder::class);
+test('customizable unisex t-shirt seeder creates the initial profile-backed product', function () {
+    $this->seed(CustomizableUnisexTShirtSeeder::class);
 
     $product = CustomizablePrintProduct::query()
         ->where('product_name', 'dolore in ut (Custom)')
@@ -17,7 +17,7 @@ test('customizable product seeder creates the initial profile-backed product', f
         ->and($product?->visibility_status)->toBe(ProductVisibilityStatus::Active);
 });
 
-test('customizable product seeder is idempotent by product name', function () {
+test('customizable unisex t-shirt seeder is idempotent by product name', function () {
     CustomizablePrintProduct::query()->create([
         'product_name' => 'dolore in ut (Custom)',
         'description' => 'Old description',
@@ -26,7 +26,7 @@ test('customizable product seeder is idempotent by product name', function () {
         'design_profile_key' => null,
     ]);
 
-    $this->seed(CustomizableProductSeeder::class);
+    $this->seed(CustomizableUnisexTShirtSeeder::class);
 
     expect(
         CustomizablePrintProduct::query()

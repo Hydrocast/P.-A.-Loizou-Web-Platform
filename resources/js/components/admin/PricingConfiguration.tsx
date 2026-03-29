@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Save, AlertCircle, CheckCircle2, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTimedFlash } from '@/hooks/useTimedFlash';
 
 interface CustomizableProduct {
@@ -39,7 +39,7 @@ export default function PricingConfiguration({
   selectedProductId = null,
   flash = {},
 }: PricingConfigurationProps) {
-  const { visibleSuccess, visibleError } = useTimedFlash({
+  useTimedFlash({
     success: flash.success,
     error: flash.error,
   });
@@ -79,7 +79,7 @@ export default function PricingConfiguration({
     ]);
   }, [existingTiers]);
 
-  const filteredProducts = useMemo(() => {
+  const filteredProducts = (() => {
     const trimmedQuery = searchQuery.trim().toLowerCase();
 
     if (!trimmedQuery) {
@@ -89,7 +89,7 @@ export default function PricingConfiguration({
     return customizableProducts.filter((product) =>
       product.product_name.toLowerCase().includes(trimmedQuery),
     );
-  }, [customizableProducts, searchQuery]);
+  })();
 
   const handleProductChange = (productId: number | null) => {
     setValidationErrors({});
@@ -320,27 +320,27 @@ export default function PricingConfiguration({
     );
   };
 
-  const selectedProductName = useMemo(() => {
+  const selectedProductName = (() => {
     return (
       customizableProducts.find((product) => product.product_id === selectedProduct)?.product_name ??
       'Unknown Product'
     );
-  }, [customizableProducts, selectedProduct]);
+  })();
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 overflow-hidden">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-purple-900">
+    <div className="overflow-hidden rounded-lg bg-white p-4 shadow-md sm:p-5 md:p-6">
+      <div className="mb-5 md:mb-6">
+        <h2 className="text-xl font-semibold text-purple-900 sm:text-2xl">
           Tiered Pricing Configuration
         </h2>
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="mt-1 text-sm text-gray-600">
           Configure quantity-based pricing tiers for customizable products
         </p>
       </div>
 
       {successMessage && (
-        <div className="mb-6 p-4 bg-green-100 text-green-800 rounded-md border border-green-200 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div className="mb-5 flex items-start gap-3 rounded-md border border-green-200 bg-green-100 px-4 py-3 text-green-800 md:mb-6">
+          <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-medium">Success</p>
             <p className="text-sm mt-1">{successMessage}</p>
@@ -349,8 +349,8 @@ export default function PricingConfiguration({
       )}
 
       {errorMessage && (
-        <div className="mb-6 p-4 bg-red-100 text-red-800 rounded-md border border-red-200 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div className="mb-5 flex items-start gap-3 rounded-md border border-red-200 bg-red-100 px-4 py-3 text-red-800 md:mb-6">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="font-medium">Error</p>
             <p className="text-sm mt-1">{errorMessage}</p>
@@ -358,13 +358,16 @@ export default function PricingConfiguration({
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="space-y-5 md:space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Product
           </label>
 
-          <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <form
+            onSubmit={handleSearchSubmit}
+            className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
+          >
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -378,7 +381,7 @@ export default function PricingConfiguration({
 
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-md border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700"
+              className="inline-flex w-full items-center justify-center rounded-md border border-purple-600 bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 md:w-auto"
             >
               Search Product
             </button>
@@ -394,7 +397,7 @@ export default function PricingConfiguration({
                     key={product.product_id}
                     type="button"
                     onClick={() => handleProductChange(product.product_id)}
-                    className={`w-full px-4 py-2 text-left text-sm transition-colors ${
+                    className={`w-full px-4 py-2.5 text-left text-sm transition-colors ${
                       isSelected
                         ? 'bg-purple-100 text-purple-900 font-medium'
                         : 'hover:bg-gray-100 text-gray-700'
@@ -419,20 +422,97 @@ export default function PricingConfiguration({
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Pricing Tiers</h3>
             <button
               type="button"
               onClick={handleAddTier}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-purple-600 px-3 py-2 text-sm text-white hover:bg-purple-700 sm:w-auto"
             >
               <Plus className="w-4 h-4" />
               Add Tier
             </button>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] border border-gray-200 rounded-md overflow-hidden">
+          <div className="space-y-4 md:hidden">
+            {tiers.map((tier, index) => (
+              <div key={tier.tier_id} className="rounded-md border border-gray-200 p-4">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-semibold text-gray-900">Tier {index + 1}</h4>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTier(tier.tier_id)}
+                    className="inline-flex items-center gap-1 text-sm text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={tiers.length <= 1}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Remove
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Min Quantity</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={tier.minimum_quantity}
+                      onChange={(e) => handleTierChange(tier.tier_id, 'minimum_quantity', e.target.value)}
+                      className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
+                        validationErrors[`${tier.tier_id}-minimum_quantity`] ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {validationErrors[`${tier.tier_id}-minimum_quantity`] && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {validationErrors[`${tier.tier_id}-minimum_quantity`]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Max Quantity</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={tier.maximum_quantity}
+                      onChange={(e) => handleTierChange(tier.tier_id, 'maximum_quantity', e.target.value)}
+                      className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
+                        validationErrors[`${tier.tier_id}-maximum_quantity`] ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {validationErrors[`${tier.tier_id}-maximum_quantity`] && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {validationErrors[`${tier.tier_id}-maximum_quantity`]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">Unit Price (€)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={tier.unit_price}
+                      onChange={(e) => handleTierChange(tier.tier_id, 'unit_price', e.target.value)}
+                      className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
+                        validationErrors[`${tier.tier_id}-unit_price`] ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                    />
+                    {validationErrors[`${tier.tier_id}-unit_price`] && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {validationErrors[`${tier.tier_id}-unit_price`]}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
+            <table className="w-full min-w-160 overflow-hidden rounded-md border border-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tier</th>
@@ -452,12 +532,14 @@ export default function PricingConfiguration({
                         min={1}
                         value={tier.minimum_quantity}
                         onChange={(e) => handleTierChange(tier.tier_id, 'minimum_quantity', e.target.value)}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-purple-500 ${
+                        className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
                           validationErrors[`${tier.tier_id}-minimum_quantity`] ? 'border-red-500' : 'border-gray-300'
                         }`}
                       />
                       {validationErrors[`${tier.tier_id}-minimum_quantity`] && (
-                        <p className="text-xs text-red-600 mt-1">{validationErrors[`${tier.tier_id}-minimum_quantity`]}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {validationErrors[`${tier.tier_id}-minimum_quantity`]}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -466,12 +548,14 @@ export default function PricingConfiguration({
                         min={1}
                         value={tier.maximum_quantity}
                         onChange={(e) => handleTierChange(tier.tier_id, 'maximum_quantity', e.target.value)}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-purple-500 ${
+                        className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
                           validationErrors[`${tier.tier_id}-maximum_quantity`] ? 'border-red-500' : 'border-gray-300'
                         }`}
                       />
                       {validationErrors[`${tier.tier_id}-maximum_quantity`] && (
-                        <p className="text-xs text-red-600 mt-1">{validationErrors[`${tier.tier_id}-maximum_quantity`]}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {validationErrors[`${tier.tier_id}-maximum_quantity`]}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -481,22 +565,24 @@ export default function PricingConfiguration({
                         step="0.01"
                         value={tier.unit_price}
                         onChange={(e) => handleTierChange(tier.tier_id, 'unit_price', e.target.value)}
-                        className={`w-full px-3 py-2 text-sm border rounded-md focus:ring-2 focus:ring-purple-500 ${
+                        className={`w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500 ${
                           validationErrors[`${tier.tier_id}-unit_price`] ? 'border-red-500' : 'border-gray-300'
                         }`}
                       />
                       {validationErrors[`${tier.tier_id}-unit_price`] && (
-                        <p className="text-xs text-red-600 mt-1">{validationErrors[`${tier.tier_id}-unit_price`]}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                          {validationErrors[`${tier.tier_id}-unit_price`]}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
                         type="button"
                         onClick={() => handleRemoveTier(tier.tier_id)}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-sm text-red-600 hover:text-red-700"
+                        className="inline-flex items-center gap-1 px-2 py-1 text-sm text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={tiers.length <= 1}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="h-4 w-4" />
                         Remove
                       </button>
                     </td>
@@ -507,7 +593,7 @@ export default function PricingConfiguration({
           </div>
 
           {validationErrors.tiers && (
-            <p className="text-sm text-red-600 mt-2">{validationErrors.tiers}</p>
+            <p className="mt-2 text-sm text-red-600">{validationErrors.tiers}</p>
           )}
         </div>
 
@@ -516,7 +602,7 @@ export default function PricingConfiguration({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting || !selectedProduct}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-green-600 px-6 py-3 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             <Save className="w-4 h-4" />
             {isSubmitting ? 'Saving...' : 'Save Pricing Configuration'}

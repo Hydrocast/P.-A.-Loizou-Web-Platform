@@ -33,23 +33,27 @@ export default function CustomerProfile() {
     put('/account/profile');
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setData('phone_number', e.target.value.replace(/\D/g, '').slice(0, 8));
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-2xl font-semibold mb-6">Profile Information</h2>
+    <div className="rounded-lg bg-white p-4 shadow-sm sm:p-5 md:p-6">
+      <h2 className="mb-5 text-xl font-semibold sm:text-2xl md:mb-6">Profile Information</h2>
 
       {visibleSuccess && (
-        <div className="mb-4 p-3 bg-green-100 text-green-800 rounded-md">
+        <div className="mb-4 rounded-md bg-green-100 px-4 py-3 text-sm text-green-800 sm:text-base">
           {visibleSuccess}
         </div>
       )}
 
       {visibleError && (
-        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
+        <div className="mb-4 rounded-md bg-red-100 px-4 py-3 text-sm text-red-800 sm:text-base">
           {visibleError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <form onSubmit={handleSubmit} className="max-w-md space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Email Address
@@ -58,7 +62,7 @@ export default function CustomerProfile() {
             type="email"
             value={customer.email}
             disabled
-            className="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500"
+            className="w-full rounded-md border border-gray-300 bg-gray-50 px-4 py-2 text-gray-500"
           />
           <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
         </div>
@@ -71,7 +75,7 @@ export default function CustomerProfile() {
             type="text"
             value={data.full_name}
             onChange={(e) => setData('full_name', e.target.value)}
-            className={`w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full rounded-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 ${
               errors.full_name ? 'border-red-500' : 'border-gray-300'
             }`}
             maxLength={50}
@@ -87,15 +91,15 @@ export default function CustomerProfile() {
           </label>
 
           <div className="flex rounded-md shadow-sm">
-            <div className="inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 rounded-l-md bg-gray-50 text-gray-600 text-sm font-medium">
+            <div className="inline-flex shrink-0 items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600">
               +357
             </div>
 
             <input
               type="tel"
               value={data.phone_number}
-              onChange={(e) => setData('phone_number', e.target.value.replace(/\D/g, '').slice(0, 8))}
-              className={`w-full px-4 py-2 border rounded-r-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              onChange={handlePhoneChange}
+              className={`w-full rounded-r-md border px-4 py-2 focus:border-transparent focus:ring-2 focus:ring-blue-500 ${
                 errors.phone_number ? 'border-red-500' : 'border-gray-300'
               }`}
               placeholder="12345678"
@@ -114,7 +118,7 @@ export default function CustomerProfile() {
         <button
           type="submit"
           disabled={processing}
-          className="cursor-pointer bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 font-medium disabled:opacity-60"
+          className="w-full cursor-pointer rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
         >
           {processing ? 'Saving...' : 'Save Changes'}
         </button>

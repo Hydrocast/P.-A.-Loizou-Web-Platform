@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateStandardProductRequest;
-use App\Services\ProductService;
-use App\Models\StandardProduct;
 use App\Models\CustomizablePrintProduct;
 use App\Models\ProductCategory;
+use App\Models\StandardProduct;
+use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -47,8 +47,8 @@ class ProductManagementController extends Controller
 
             if ($searchQuery !== '') {
                 $standardQuery->where(function ($query) use ($searchQuery) {
-                    $query->where('product_name', 'like', '%' . $searchQuery . '%')
-                        ->orWhere('description', 'like', '%' . $searchQuery . '%');
+                    $query->where('product_name', 'like', '%'.$searchQuery.'%')
+                        ->orWhere('description', 'like', '%'.$searchQuery.'%');
                 });
             }
 
@@ -81,8 +81,8 @@ class ProductManagementController extends Controller
 
             if ($searchQuery !== '') {
                 $customizableQuery->where(function ($query) use ($searchQuery) {
-                    $query->where('product_name', 'like', '%' . $searchQuery . '%')
-                        ->orWhere('description', 'like', '%' . $searchQuery . '%');
+                    $query->where('product_name', 'like', '%'.$searchQuery.'%')
+                        ->orWhere('description', 'like', '%'.$searchQuery.'%');
                 });
             }
 
@@ -164,6 +164,27 @@ class ProductManagementController extends Controller
 
     public function update(Request $request, string $type, int $id): RedirectResponse
     {
+        $validatedReturnFilters = $request->validate([
+            'return_filters' => ['nullable', 'array'],
+            'return_filters.query' => ['nullable', 'string', 'max:50'],
+            'return_filters.product_type' => ['nullable', 'in:standard,customizable'],
+            'return_filters.category_id' => ['nullable', 'integer', 'exists:product_categories,category_id'],
+            'return_filters.visibility_status' => ['nullable', 'in:Active,Inactive'],
+        ]);
+
+        $returnFilters = $validatedReturnFilters['return_filters'] ?? [];
+
+        $redirectFilters = [
+            'query' => filled($returnFilters['query'] ?? null)
+                ? trim($returnFilters['query'])
+                : null,
+            'product_type' => $returnFilters['product_type'] ?? null,
+            'category_id' => isset($returnFilters['category_id'])
+                ? (int) $returnFilters['category_id']
+                : null,
+            'visibility_status' => $returnFilters['visibility_status'] ?? null,
+        ];
+
         if ($type === 'standard') {
             $product = StandardProduct::findOrFail($id);
             $data = app(\App\Http\Requests\EditStandardProductRequest::class)->validated();
@@ -240,7 +261,10 @@ class ProductManagementController extends Controller
         }
 
         return redirect()
-            ->route('staff.products.index')
+            ->route('staff.products.index', array_filter(
+                $redirectFilters,
+                fn ($value) => $value !== null && $value !== ''
+            ))
             ->with('success', $message);
     }
 

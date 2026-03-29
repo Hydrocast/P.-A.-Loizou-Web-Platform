@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Plus, Edit, Eye, EyeOff, Search } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import Modal, { ConfirmDialog } from '@/components/public/Modal';
 import { useTimedFlash } from '@/hooks/useTimedFlash';
@@ -51,6 +51,8 @@ export default function StaffProducts({
     success: flash.success,
     error: flash.error,
   });
+  const products = Array.isArray(incomingProducts) ? incomingProducts : [];
+  const categoryMap = new Map(categories.map((category) => [category.categoryId, category.categoryName]));
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -100,30 +102,34 @@ export default function StaffProducts({
   const [removeImage, setRemoveImage] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const navigateWithFilters = useCallback(
-    (
-      nextQuery: string,
-      nextType: 'all' | 'standard' | 'customizable',
-      nextCategory: number | null,
-      nextStatus: 'all' | 'Active' | 'Inactive',
-    ) => {
-      router.get(
-        '/staff/products',
-        {
-          query: nextQuery.trim() || undefined,
-          product_type: nextType === 'all' ? undefined : nextType,
-          category_id: nextCategory ?? undefined,
-          visibility_status: nextStatus === 'all' ? undefined : nextStatus,
-        },
-        {
-          preserveScroll: true,
-          preserveState: true,
-          replace: true,
-        },
-      );
-    },
-    [],
-  );
+  const navigateWithFilters = (
+    nextQuery: string,
+    nextType: 'all' | 'standard' | 'customizable',
+    nextCategory: number | null,
+    nextStatus: 'all' | 'Active' | 'Inactive',
+  ) => {
+    router.get(
+      '/staff/products',
+      {
+        query: nextQuery.trim() || undefined,
+        product_type: nextType === 'all' ? undefined : nextType,
+        category_id: nextCategory ?? undefined,
+        visibility_status: nextStatus === 'all' ? undefined : nextStatus,
+      },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        replace: true,
+      },
+    );
+  };
+
+  const buildReturnFiltersPayload = () => ({
+    query: searchQuery.trim() || null,
+    product_type: selectedType === 'all' ? null : selectedType,
+    category_id: selectedCategory,
+    visibility_status: selectedStatus === 'all' ? null : selectedStatus,
+  });
 
   useEffect(() => {
     latestFiltersRef.current = {
@@ -150,7 +156,7 @@ export default function StaffProducts({
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [searchQuery, navigateWithFilters]);
+  }, [searchQuery]);
 
   const handleTypeChange = (value: 'all' | 'standard' | 'customizable') => {
     setSelectedType(value);
@@ -259,6 +265,7 @@ export default function StaffProducts({
         visibility_status: selectedProduct.visibilityStatus,
         image: selectedImage ?? undefined,
         remove_image: removeImage ? 1 : 0,
+        return_filters: buildReturnFiltersPayload(),
       },
       {
         forceFormData: true,
@@ -288,6 +295,7 @@ export default function StaffProducts({
         display_price: productToToggle.type === 'Standard' ? productToToggle.displayPrice : null,
         description: productToToggle.description ?? '',
         visibility_status: newStatus,
+        return_filters: buildReturnFiltersPayload(),
       },
       {
         preserveScroll: true,
@@ -354,11 +362,7 @@ export default function StaffProducts({
     setRemoveImage(false);
   };
 
-  const getCategoryName = (categoryId?: number | null) => {
-    if (!categoryId) return '-';
-    const category = categories.find((c) => c.categoryId === categoryId);
-    return category ? category.categoryName : '-';
-  };
+  const getCategoryName = (categoryId?: number | null) => (categoryId ? (categoryMap.get(categoryId) ?? '-') : '-');
 
   const isCategoryDisabled = selectedType === 'customizable';
 
@@ -393,7 +397,7 @@ export default function StaffProducts({
           </button>
 
           <div className="min-w-0 flex-1">
-            <p className={`truncate text-sm ${selectedImage ? 'text-gray-900' : 'text-gray-500'}`}>
+            <p className={`text-sm wrap-break-word ${selectedImage ? 'text-gray-900' : 'text-gray-500'}`}>
               {selectedFileLabel}
             </p>
 
@@ -409,42 +413,42 @@ export default function StaffProducts({
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-purple-900">Product Management</h2>
+    <div className="rounded-lg bg-white p-4 shadow-md sm:p-5 md:p-6">
+      <div className="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-xl font-semibold text-purple-900 sm:text-2xl">Product Management</h2>
         <button
           onClick={openAddModal}
-          className="flex items-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+          className="flex w-full items-center justify-center rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors cursor-pointer hover:bg-purple-700 sm:w-auto"
         >
-          <Plus className="w-5 h-5 mr-2" />
+          <Plus className="mr-2 h-5 w-5" />
           Add Product
         </button>
       </div>
 
       {visibleSuccess && (
-        <div className="mb-4 p-4 bg-green-100 text-green-800 rounded-md border border-green-200">
+        <div className="mb-4 rounded-md border border-green-200 bg-green-100 px-4 py-3 text-sm text-green-800 sm:text-base">
           {visibleSuccess}
         </div>
       )}
 
       {visibleError && (
-        <div className="mb-4 p-4 bg-red-100 text-red-800 rounded-md border border-red-200">
+        <div className="mb-4 rounded-md border border-red-200 bg-red-100 px-4 py-3 text-sm text-red-800 sm:text-base">
           {visibleError}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
               maxLength={50}
-              className="w-full h-11 pl-10 pr-4 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500"
+              className="h-11 w-full rounded-md border border-gray-300 pl-10 pr-4 text-sm focus:ring-2 focus:ring-purple-500"
             />
           </div>
         </div>
@@ -456,7 +460,7 @@ export default function StaffProducts({
             onChange={(e) =>
               handleTypeChange(e.target.value as 'all' | 'standard' | 'customizable')
             }
-            className="w-full h-11 px-4 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer"
+            className="h-11 w-full rounded-md border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer"
           >
             <option value="all">All Types</option>
             <option value="standard">Standard</option>
@@ -470,7 +474,7 @@ export default function StaffProducts({
             value={selectedCategory ?? ''}
             onChange={(e) => handleCategoryChange(e.target.value)}
             disabled={isCategoryDisabled}
-            className={`w-full h-11 px-4 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 ${
+            className={`h-11 w-full rounded-md border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-purple-500 ${
               isCategoryDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'cursor-pointer'
             }`}
           >
@@ -490,7 +494,7 @@ export default function StaffProducts({
             onChange={(e) =>
               handleStatusChange(e.target.value as 'all' | 'Active' | 'Inactive')
             }
-            className="w-full h-11 px-4 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer"
+            className="h-11 w-full rounded-md border border-gray-300 px-4 text-sm focus:ring-2 focus:ring-purple-500 cursor-pointer"
           >
             <option value="all">All Statuses</option>
             <option value="Active">Active</option>
@@ -499,7 +503,114 @@ export default function StaffProducts({
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="md:hidden">
+        {products.length === 0 ? (
+          <div className="rounded-md border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No products match the selected filters.
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {products.map((product) => (
+              <div
+                key={`${product.type}-${product.productId}`}
+                className="rounded-lg border border-gray-200 p-4"
+              >
+                <div className="mb-4 flex items-start gap-4">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.productName}
+                      className="h-16 w-16 shrink-0 rounded-md border border-gray-200 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-dashed border-gray-300 text-[11px] text-gray-400">
+                      No image
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold text-gray-900 wrap-break-word">
+                      {product.productName}
+                    </h3>
+
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span
+                        className={`rounded px-2 py-1 text-xs font-semibold ${
+                          product.type === 'Customizable'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {product.type}
+                      </span>
+
+                      <span
+                        className={`rounded px-2 py-1 text-xs font-semibold ${
+                          product.visibilityStatus === 'Active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {product.visibilityStatus}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <dl className="space-y-2 text-sm">
+                  <div>
+                    <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Category
+                    </dt>
+                    <dd className="text-gray-700 wrap-break-word">{getCategoryName(product.categoryId)}</dd>
+                  </div>
+
+                  <div>
+                    <dt className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-500">
+                      Price
+                    </dt>
+                    <dd className="text-gray-900">
+                      {product.type === 'Standard'
+                        ? (product.displayPrice !== null ? `€${Number(product.displayPrice).toFixed(2)}` : '-')
+                        : '-'}
+                    </dd>
+                  </div>
+                </dl>
+
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <button
+                    onClick={() => openEditModal(product)}
+                    className="inline-flex w-full items-center justify-center rounded-md border border-purple-200 px-3 py-2 text-sm text-purple-700 transition-colors cursor-pointer hover:bg-purple-50 sm:w-auto"
+                    title="Edit Product"
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => openVisibilityConfirm(product)}
+                    className={`inline-flex w-full items-center justify-center rounded-md px-3 py-2 text-sm transition-colors cursor-pointer sm:w-auto ${
+                      product.visibilityStatus === 'Active'
+                        ? 'border border-red-200 text-red-700 hover:bg-red-50'
+                        : 'border border-green-200 text-green-700 hover:bg-green-50'
+                    }`}
+                    title={product.visibilityStatus === 'Active' ? 'Deactivate' : 'Activate'}
+                  >
+                    {product.visibilityStatus === 'Active' ? (
+                      <EyeOff className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Eye className="mr-2 h-4 w-4" />
+                    )}
+                    {product.visibilityStatus === 'Active' ? 'Deactivate' : 'Activate'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-96 table-auto">
           <thead className="bg-gray-50">
             <tr>
@@ -514,36 +625,36 @@ export default function StaffProducts({
           </thead>
 
           <tbody className="divide-y divide-gray-200">
-            {incomingProducts.length === 0 ? (
+            {products.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-3 py-8 text-center text-gray-500">
                   No products match the selected filters.
                 </td>
               </tr>
             ) : (
-              incomingProducts.map((product) => (
-                <tr key={`${product.type}-${product.productId}`} className="hover:bg-gray-50 transition-colors">
+              products.map((product) => (
+                <tr key={`${product.type}-${product.productId}`} className="transition-colors hover:bg-gray-50">
                   <td className="px-3 py-3">
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
                         alt={product.productName}
-                        className="w-14 h-14 object-cover rounded-md border border-gray-200"
+                        className="h-14 w-14 rounded-md border border-gray-200 object-cover"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-md border border-dashed border-gray-300 flex items-center justify-center text-[11px] text-gray-400">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-md border border-dashed border-gray-300 text-[11px] text-gray-400">
                         No image
                       </div>
                     )}
                   </td>
 
-                  <td className="max-w-[240px] whitespace-normal break-words px-3 py-3 align-top font-medium text-gray-900">
+                  <td className="max-w-45 px-3 py-3 align-top font-medium whitespace-normal text-gray-900 wrap-break-word">
                     {product.productName}
                   </td>
 
                   <td className="px-3 py-3">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
+                      className={`rounded px-2 py-1 text-xs font-semibold ${
                         product.type === 'Customizable'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-gray-100 text-gray-800'
@@ -553,7 +664,7 @@ export default function StaffProducts({
                     </span>
                   </td>
 
-                  <td className="max-w-[180px] whitespace-normal break-words px-3 py-3 align-top text-gray-700">
+                  <td className="max-w-45 px-3 py-3 align-top whitespace-normal text-gray-700 wrap-break-word">
                     {getCategoryName(product.categoryId)}
                   </td>
 
@@ -565,7 +676,7 @@ export default function StaffProducts({
 
                   <td className="px-3 py-3">
                     <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
+                      className={`rounded px-2 py-1 text-xs font-semibold ${
                         product.visibilityStatus === 'Active'
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
@@ -575,19 +686,19 @@ export default function StaffProducts({
                     </span>
                   </td>
 
-                  <td className="px-3 py-3 w-28">
+                  <td className="w-28 px-3 py-3">
                     <div className="flex justify-end space-x-2 whitespace-nowrap">
                       <button
                         onClick={() => openEditModal(product)}
-                        className="p-2 text-purple-600 hover:bg-purple-50 rounded transition-colors cursor-pointer"
+                        className="cursor-pointer rounded p-2 text-purple-600 transition-colors hover:bg-purple-50"
                         title="Edit Product"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="h-4 w-4" />
                       </button>
 
                       <button
                         onClick={() => openVisibilityConfirm(product)}
-                        className={`p-2 rounded transition-colors cursor-pointer ${
+                        className={`cursor-pointer rounded p-2 transition-colors ${
                           product.visibilityStatus === 'Active'
                             ? 'text-red-600 hover:bg-red-50'
                             : 'text-green-600 hover:bg-green-50'
@@ -595,9 +706,9 @@ export default function StaffProducts({
                         title={product.visibilityStatus === 'Active' ? 'Deactivate' : 'Activate'}
                       >
                         {product.visibilityStatus === 'Active' ? (
-                          <EyeOff className="w-4 h-4" />
+                          <EyeOff className="h-4 w-4" />
                         ) : (
-                          <Eye className="w-4 h-4" />
+                          <Eye className="h-4 w-4" />
                         )}
                       </button>
                     </div>
@@ -684,16 +795,16 @@ export default function StaffProducts({
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={closeAddModal}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleAddProduct}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors hover:bg-purple-700 sm:w-auto"
             >
               Add Product
             </button>
@@ -788,10 +899,10 @@ export default function StaffProducts({
               <img
                 src={selectedProduct.imageUrl}
                 alt={selectedProduct.productName}
-                className="w-28 h-28 object-cover rounded-md border border-gray-200 mb-3"
+                className="mb-3 h-28 w-28 rounded-md border border-gray-200 object-cover"
               />
             ) : (
-              <div className="w-28 h-28 rounded-md border border-dashed border-gray-300 flex items-center justify-center text-sm text-gray-400 mb-3">
+              <div className="mb-3 flex h-28 w-28 items-center justify-center rounded-md border border-dashed border-gray-300 text-sm text-gray-400">
                 No image
               </div>
             )}
@@ -824,16 +935,16 @@ export default function StaffProducts({
             )}
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
             <button
               onClick={closeEditModal}
-              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg border border-gray-300 px-6 py-2 font-medium transition-colors hover:bg-gray-50 sm:w-auto"
             >
               Cancel
             </button>
             <button
               onClick={handleEditProduct}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors cursor-pointer"
+              className="w-full cursor-pointer rounded-lg bg-purple-600 px-6 py-2 font-medium text-white transition-colors hover:bg-purple-700 sm:w-auto"
             >
               Save Changes
             </button>
